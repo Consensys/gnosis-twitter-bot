@@ -38,11 +38,12 @@ gnosis.config.initialize(
                         return Object.keys(marketCollection).map(
                           (marketHash) => {
                             let market = marketCollection[marketHash];
-                            let description = market.getEvent().getEventDescription();
+                            let eventObj = market.getEvent();
+                            let description = eventObj.getEventDescription();
                             let prices = [];
 
-                            if (description.outcomes) {
-                              for (let i=0; i<description.outcomes.length; i++) {
+                            if (description.descriptionJSON.outcomes) {
+                              for (let i=0; i<description.descriptionJSON.outcomes.length; i++) {
                                 prices.push(
                                   gnosis.marketMaker.calcPrice(
                                     market.shares,
@@ -53,7 +54,21 @@ gnosis.config.initialize(
                               }
                             }
                             else {
+                              let domain = [
+                                eventObj.lowerBound.div('1e' + description.descriptionJSON.decimals).toNumber(),
+                                eventObj.upperBound.div('1e' + description.descriptionJSON.decimals).toNumber()
+                              ];
 
+                              let boundOffset = eventObj.upperBound.minus(eventObj.lowerBound).div('1e' + description.descriptionJSON.decimals);
+
+                              // Current price
+                              prices.push(
+                                gnosis.marketMaker.calcPrice(
+                                  market.shares,
+                                  new BigNumber(1),
+                                  market.initialFunding
+                                ).mul(boundOffset).plus(eventObj.lowerBound.div('1e' + description.descriptionJSON.decimals))
+                              );
                             }
 
                             return {
