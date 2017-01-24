@@ -2,7 +2,7 @@ const gnosis = require("gnosisjs");
 const configObject = require("./config.js");
 const BigNumber = require('bignumber.js');
 const filters = {
-  tags: "",
+  tags: "twitter",
   include_whitelisted_oracles: true,
   oracle_addresses: "0x0"
 };
@@ -38,7 +38,7 @@ gnosis.config.initialize(
                         return Object.keys(marketCollection).map(
                           (marketHash) => {
                             let market = marketCollection[marketHash];
-                            let description = market.getEvent().getEventDescription().descriptionJSON;
+                            let description = market.getEvent().getEventDescription();
                             let prices = [];
 
                             if (description.outcomes) {
@@ -60,9 +60,10 @@ gnosis.config.initialize(
                               marketHash: market.marketHash,
                               investor: market.investorAddress,
                               shares: market.shares,
-                              description: description,
+                              description: description.descriptionJSON,
                               marketAddress: market.marketAddress,
-                              prices: prices
+                              prices: prices,
+                              descriptionHash: description.descriptionHash
                             }
                           }
                         )
