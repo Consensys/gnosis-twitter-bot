@@ -46,7 +46,7 @@ gnosis.config.initialize(
                                 prices.push(
                                   gnosis.marketMaker.calcPrice(
                                     market.shares,
-                                    new BigNumber(1),
+                                    new BigNumber(0),
                                     market.initialFunding
                                   )
                                 );
