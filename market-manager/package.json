@@ -9,6 +9,7 @@
   "author": "denis@gnosis.pm",
   "license": "GPL-3.0",
   "dependencies": {
-    "bignumber.js": "^4.0.0"
+    "bignumber.js": "^4.0.0",
+    "gnosisjs": "^0.1.3"
   }
 }
