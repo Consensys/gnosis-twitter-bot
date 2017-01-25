@@ -62,17 +62,20 @@ class PublisherBot(object):
                         break
                     else:
                         self._actual_market = self._markets[x+1]
-                        break
+                        break                        
 
             self._actual_market_hash = self._actual_market['marketHash']
             # Set memcache
-            self._memcache.set('market_hash', self._actual_market_hash)
+            #self._memcache.set('market_hash', self._actual_market_hash)
         else:
             # Set the first element of the markets array
             self._actual_market = self._markets[0]
             self._actual_market_hash = self._actual_market['marketHash']
             # Set memcache
-            self._memcache.set('market_hash', self._actual_market_hash)
+            #self._memcache.set('market_hash', self._actual_market_hash)
+
+    def add_to_memcache(self, key, value):
+        self._memcache.set(key, value)
 
     def tweet_new_market(self):
         # get Twitter API instance
@@ -96,3 +99,6 @@ class PublisherBot(object):
                     message += '/'
 
         res = api.update_status(message)
+
+        # Set memcache
+        self.add_to_memcache('market_hash', self._actual_market_hash)
