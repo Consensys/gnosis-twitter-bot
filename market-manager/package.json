@@ -10,7 +10,7 @@
   "license": "GPL-3.0",
   "dependencies": {
     "bignumber.js": "^4.0.0",
-    "gnosisjs": "^0.1.3",
+    "gnosisjs": "^0.1.6",
     "web3": "^0.18.2",
     "web3-provider-engine": "^8.4.0"
   }

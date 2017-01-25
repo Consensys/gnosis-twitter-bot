@@ -24,5 +24,6 @@ module.exports = {
   },
   gnosisServiceURL: 'https://beta.gnosis.pm/api/',
   ethereumNodeURL: 'https://ropsten.infura.io/gnosis-twitter-bot',
-  transactionsLoop: false
+  transactionsLoop: false,
+  callBeforeTransaction: false
 };
