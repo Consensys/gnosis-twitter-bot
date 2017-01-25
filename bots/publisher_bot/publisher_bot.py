@@ -2,19 +2,21 @@ from subprocess import Popen, PIPE
 import memcache
 import json
 import tweepy
-#import time
-from datetime import datetime
 
 class PublisherBot(object):
     """Publisher bot class"""
 
     _instance = None
 
+    GNOSIS_URL = 'https://beta.gnosis.pm/'
+    MEMCACHE_URL = '127.0.0.1:11211'
+
     def __init__(self, auth):
         self._auth = auth
         self._actual_market = {}
+        self._actual_market_hash = None
         self._markets = []
-        self._memcache = memcache.Client(['127.0.0.1:11211'], cache_cas=True)
+        self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
 
     def __new__(self, auth):
         if auth:
@@ -45,29 +47,52 @@ class PublisherBot(object):
         except Exception:
             raise
 
-        # 1st chech if cache contains the actual hash
+        # 1st chech if cache contains the market hash
         if self._memcache.get('market_hash'):
 
-            self._actual_market = self._memcache.get('market_hash')
+            self._actual_market_hash = self._memcache.get('market_hash')
 
-            # Find the next market hash
+            # Find the next available market hash
             n_markets = len(self._markets)
 
             for x in range(0, n_markets):
-                if self._markets[x]['marketHash'] == self._actual_market:
+                if self._markets[x]['marketHash'] == self._actual_market_hash:
                     if x == n_markets-1:
-                        self._actual_market = self._markets[0]['marketHash']
+                        self._actual_market = self._markets[0]
+                        break
                     else:
-                        self._actual_market = self._markets[x+1]['marketHash']
+                        self._actual_market = self._markets[x+1]
+                        break
 
-                self._memcache.set('market_hash', self._actual_market)
+            self._actual_market_hash = self._actual_market['marketHash']
+            # Set memcache
+            self._memcache.set('market_hash', self._actual_market_hash)
         else:
             # Set the first element of the markets array
-            self._actual_market = self._markets[0]['marketHash']
-            self._memcache.set('market_hash', self._actual_market)
+            self._actual_market = self._markets[0]
+            self._actual_market_hash = self._actual_market['marketHash']
+            # Set memcache
+            self._memcache.set('market_hash', self._actual_market_hash)
 
     def tweet_new_market(self):
+        # get Twitter API instance
         api = self._auth.get_api()
-        now = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
-        message = 'Message created by GnosisMarketBot - (%s)' % now
-        api.update_status(message)
+        # marketTitle
+        message = self._actual_market['description']['description']
+        # marketHashAsLink
+        message += ' ' + PublisherBot.GNOSIS_URL + '#/market/'
+        message += self._actual_market['descriptionHash'] + '/'
+        message += self._actual_market['marketAddress'] + '/'
+        message += self._actual_market['marketHash'] + ' '
+        # odds
+        if 'outcomes' in self._actual_market['description']:
+
+            n_outcomes = len(self._actual_market['description']['outcomes'])
+
+            for x in range(0, n_outcomes):
+                message += self._actual_market['description']['outcomes'][x]
+
+                if x != n_outcomes-1:
+                    message += '/'
+
+        res = api.update_status(message)
