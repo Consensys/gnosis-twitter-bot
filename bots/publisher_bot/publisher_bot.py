@@ -2,6 +2,7 @@ from subprocess import Popen, PIPE
 import memcache
 import json
 import tweepy
+import time
 
 class PublisherBot(object):
     """Publisher bot class"""
@@ -62,7 +63,7 @@ class PublisherBot(object):
                         break
                     else:
                         self._actual_market = self._markets[x+1]
-                        break                        
+                        break
 
             self._actual_market_hash = self._actual_market['marketHash']
             # Set memcache
@@ -81,23 +82,31 @@ class PublisherBot(object):
         # get Twitter API instance
         api = self._auth.get_api()
         # marketTitle
-        message = self._actual_market['description']['description']
+        message = self._actual_market['description']['title'] + ' '
+
+        # odds
+        if 'outcomes' in self._actual_market['description']:
+
+            #n_outcomes = len(self._actual_market['description']['outcomes'])
+            #for x in range(0, n_outcomes):
+            #    message += self._actual_market['description']['outcomes'][x]
+            #    message += ' (' + self._actual_market['prices'][x] + ' %) '
+            #    if x != n_outcomes-1:
+            #        message += ' / '
+
+            message += self._actual_market['description']['outcomes'][0] + ' '
+            message += '(' + str(float(self._actual_market['prices'][0])*100) + ' %)'
+
+        else:
+            message += ' Current ' + self._actual_market['prices'][0] + ' '
+            message += self._actual_market['description']['unit']
+
         # marketHashAsLink
         message += ' ' + PublisherBot.GNOSIS_URL + '#/market/'
         message += self._actual_market['descriptionHash'] + '/'
         message += self._actual_market['marketAddress'] + '/'
-        message += self._actual_market['marketHash'] + ' '
-        # odds
-        if 'outcomes' in self._actual_market['description']:
-
-            n_outcomes = len(self._actual_market['description']['outcomes'])
-
-            for x in range(0, n_outcomes):
-                message += self._actual_market['description']['outcomes'][x]
-
-                if x != n_outcomes-1:
-                    message += '/'
-
+        message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
+        print message
         res = api.update_status(message)
 
         # Set memcache
