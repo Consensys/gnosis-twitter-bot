@@ -11,6 +11,8 @@ class PublisherBot(object):
 
     GNOSIS_URL = 'https://beta.gnosis.pm/'
     MEMCACHE_URL = '127.0.0.1:11211'
+    MARKET_MANAGER_DIR = '../market-manager/'
+    GET_MARKETS_FILE = 'getMarkets.js'
 
     def __init__(self, auth):
         self._auth = auth
@@ -31,7 +33,7 @@ class PublisherBot(object):
 
     def load_markets(self):
         try:
-            process = Popen(["node", "../market-manager/index.js", "."], stdout=PIPE)
+            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
 

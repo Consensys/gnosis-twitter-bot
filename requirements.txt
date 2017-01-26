@@ -1,0 +1,4 @@
+requests==2.5.3
+click==5.1
+python-memcached==1.53
+tweepy==3.5.0
