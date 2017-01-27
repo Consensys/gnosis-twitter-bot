@@ -23,3 +23,6 @@ class AuthFactory(object):
 
     def get_api(self):
         return AuthFactory._api
+
+    def get_authentication(self):
+        return AuthFactory._auth

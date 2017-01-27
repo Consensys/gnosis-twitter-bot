@@ -9,10 +9,13 @@ class PublisherBot(object):
 
     _instance = None
 
-    GNOSIS_URL = 'https://beta.gnosis.pm/'
+    # Constants - TODO put them in a common configuration file
+    GNOSIS_TWITTER_NAME = '@gnosismarketbot'
+    GNOSIS_URL = 'https://beta.gnosis.pm/#/market/'
     MEMCACHE_URL = '127.0.0.1:11211'
     MARKET_MANAGER_DIR = '../market-manager/'
     GET_MARKETS_FILE = 'getMarkets.js'
+    GET_QR_FILE = 'getQR.js'
 
     def __init__(self, auth):
         self._auth = auth
@@ -31,21 +34,40 @@ class PublisherBot(object):
         else:
             raise Exception('Authentication not provided')
 
-    def load_markets(self):
+
+    def get_markets(self):
+        markets = []
+
         try:
             process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
 
-            self._markets = json.loads(output)
+            markets = json.loads(output)
 
-            if len(self._markets) == 0:
-                raise Exception('No markets found')
-
-            print "markets loaded"
+            #if len(self._markets) == 0:
+            #    raise Exception('No markets found')
 
             if err:
                 pass #TODO define what to do with returning errors
+
+            return markets
+
+        except Exception:
+            raise
+
+
+    def load_markets(self):
+        try:
+            #process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE)
+            #(output, err) = process.communicate()
+            #exit_code = process.wait()
+            #self._markets = json.loads(output)
+
+            self._markets = self.get_markets()
+
+            if len(self._markets) == 0:
+                raise Exception('No markets found')
 
         except Exception:
             raise
@@ -77,8 +99,10 @@ class PublisherBot(object):
             # Set memcache
             #self._memcache.set('market_hash', self._actual_market_hash)
 
+
     def add_to_memcache(self, key, value):
         self._memcache.set(key, value)
+
 
     def tweet_new_market(self):
         # get Twitter API instance
@@ -104,11 +128,11 @@ class PublisherBot(object):
             message += self._actual_market['description']['unit']
 
         # marketHashAsLink
-        message += ' ' + PublisherBot.GNOSIS_URL + '#/market/'
+        message += ' ' + PublisherBot.GNOSIS_URL
         message += self._actual_market['descriptionHash'] + '/'
         message += self._actual_market['marketAddress'] + '/'
         message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
-        print message
+
         res = api.update_status(message)
 
         # Set memcache

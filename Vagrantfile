@@ -11,7 +11,8 @@ $dependencies = <<SCRIPT
     # pyenv
     DEBIAN_FRONTEND=noninteractive apt-get install -y curl python-dev \
         libreadline-dev libbz2-dev libssl-dev libsqlite3-dev libxslt1-dev \
-        libxml2-dev libxslt1-dev git python-pip build-essential automake libtool libffi-dev libgmp-dev pkg-config
+        libxml2-dev libxslt1-dev git python-pip build-essential automake libtool libffi-dev libgmp-dev pkg-config \
+        memcached
 SCRIPT
 
 $pyenv = <<SCRIPT
@@ -48,8 +49,8 @@ SCRIPT
 $node_dependencies = <<SCRIPT
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
     apt-get install -y nodejs
-    cd /vagrant/
-    npm install --save gnosisjs 
+    cd /vagrant/market-manager
+    npm install
 SCRIPT
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
