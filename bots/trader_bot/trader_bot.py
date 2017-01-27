@@ -1,5 +1,8 @@
 from publisher_bot.publisher_bot import PublisherBot
 from subprocess import Popen, PIPE
+from StringIO import StringIO
+import base64
+import qrcode
 import tweepy
 import json
 import sys
@@ -39,12 +42,19 @@ class TraderBot(tweepy.StreamListener, object):
 
 
     def on_data(self, data):
+        """This method is called when new tweets or replies are sent to the twitter account"""
+
         json_data = json.loads(data)
 
-        if 'text' in json_data and 'in_reply_to_screen_name' in json_data and json_data['in_reply_to_screen_name'] == 'gnosismarketbot':
-            tweet_text = json_data['text']
+        if 'text' in json_data and 'in_reply_to_screen_name' in json_data \
+            and json_data['in_reply_to_screen_name'] == 'gnosismarketbot':
+
+            tweet_text = json_data['text'] # get tweet text
             trading_type = None
-            response = self._auth.get_api().get_status(json_data['in_reply_to_status_id'])
+            tweet_id = json_data['id_str']
+            tweet_reply_id = json_data['in_reply_to_status_id']
+            received_from = json_data['user']['screen_name']
+            response = self._auth.get_api().get_status(tweet_reply_id)
 
             # Check if text contains HIGHER or LOWER keyword
             if 'HIGHER' in tweet_text.upper():
@@ -91,31 +101,34 @@ class TraderBot(tweepy.StreamListener, object):
                     if 'outcomes' in market['description']:
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 0
-                            qr_string = self.get_qr(market_hash, market_address, 0)
+                            qr_string = self.get_qr_text(market_hash, market_address, 0)
                         else:
                             # call qr - outcomeIndex = 1
-                            qr_string = self.get_qr(market_hash, market_address, 1)
+                            qr_string = self.get_qr_text(market_hash, market_address, 1)
                     else:
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 1
-                            qr_string = self.get_qr(market_hash, market_address, 1)
+                            qr_string = self.get_qr_text(market_hash, market_address, 1)
                         else:
                             # call qr - outcomeIndex = 0
-                            qr_string = self.get_qr(market_hash, market_address, 0)
+                            qr_string = self.get_qr_text(market_hash, market_address, 0)
             except:
                 pass
 
             # encode Qr
 
             # reply to the received tweet
+            self.retweet('@%s Thanks for using TwitterBot' % received_from, tweet_id, qr_string)
 
 
-    def on_direct_message(self, data):
-        print "on_direct received"
-        print data
+    # def on_direct_message(self, data):
+    #     print "on_direct received"
+    #     print data
 
 
-    def get_qr(self, market_hash, market_address, outcome_index):
+    def get_qr_text(self, market_hash, market_address, outcome_index):
+        """Calls a nodejs script which returns the qrcode content to decode"""
+
         qr_string = None
         try:
             # Call node script getQR.js
@@ -126,7 +139,8 @@ class TraderBot(tweepy.StreamListener, object):
             qr_string = output
 
             if err:
-                # pass #TODO define what to do with returning errors
+                #TODO define what to do with returning errors
+                pass
 
             return qr_string
 
@@ -135,11 +149,27 @@ class TraderBot(tweepy.StreamListener, object):
             raise
 
 
-    def retweet(self, notification, tweet_id, qr_image):
-        # API.update_with_media
-        pass
+    def retweet(self, notification, tweet_id, qr_text):
+        """Send a tweet in reply to the receiving message, attaching the generated qrcode"""
+
+        # TODO
+        # Tweepy API.update_with_media seems to work only by providing
+        # a file placed on filesystem. Files creation/deletion should be managed.
+
+        # Create qrcode image
+        qr_image = qrcode.make(qr_text)
+        #img_buffer = StringIO()
+        #qr_image.save(img_buffer)
+        qr_image.save("qrcodes/qr_code.png")
+        #raw_qr_code = img_buffer.getvalue()
+        #qr_image_base64 = base64.b64encode(raw_qr_code)
+
+        # Retweet
+        response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=notification, in_reply_to_status_id=tweet_id)
 
 
     def start_streaming(self):
+        """Starts listening to the streaming API"""
+
         self._stream = tweepy.Stream(auth=self._auth.get_authentication(), listener=self._instance)
         self._stream.userstream(replies=True, async=True)
