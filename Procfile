@@ -1,1 +1,1 @@
-frag-cache: memcached -vv -m 25 -p 11211
+memcached: memcached -vv -p 11211
