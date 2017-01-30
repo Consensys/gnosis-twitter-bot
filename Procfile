@@ -1,1 +1,1 @@
-memcached: memcached
+memcached: bundle exec memcached
