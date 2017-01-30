@@ -1,1 +1,1 @@
-memcached: bundle exec memcached
+memcached: service memcached start
