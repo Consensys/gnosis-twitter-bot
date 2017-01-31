@@ -92,9 +92,9 @@ class TraderBot(tweepy.StreamListener, object):
                         break
 
                 # TODO remove print commands
-                print "Market address : " + market_address
-                print "Market hash : " + market_hash
-                print "Description hash : " + description_hash
+                # print "Market address : " + market_address
+                # print "Market hash : " + market_hash
+                # print "Description hash : " + description_hash
 
                 if market:
                     # determine if it is ranged or discrete
@@ -116,7 +116,6 @@ class TraderBot(tweepy.StreamListener, object):
                 pass
 
             # encode Qr
-
             # reply to the received tweet
             self.retweet('@%s Thanks for using TwitterBot' % received_from, tweet_id, qr_string)
 

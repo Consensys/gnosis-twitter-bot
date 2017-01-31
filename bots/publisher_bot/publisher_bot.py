@@ -1,4 +1,5 @@
 from subprocess import Popen, PIPE
+import os
 import memcache
 import json
 import tweepy
@@ -12,7 +13,7 @@ class PublisherBot(object):
     # Constants - TODO put them in a common configuration file
     GNOSIS_TWITTER_NAME = '@gnosismarketbot'
     GNOSIS_URL = 'https://beta.gnosis.pm/#/market/'
-    MEMCACHE_URL = '127.0.0.1:11211'
+    MEMCACHE_URL = os.getenv('MEMCACHED_URL', '127.0.0.1:11211')
     MARKET_MANAGER_DIR = '../market-manager/'
     GET_MARKETS_FILE = 'getMarkets.js'
     GET_QR_FILE = 'getQR.js'
@@ -39,10 +40,9 @@ class PublisherBot(object):
         markets = []
 
         try:
-            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE)
+            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE, stderr=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
-
             markets = json.loads(output)
 
             #if len(self._markets) == 0:
@@ -53,7 +53,7 @@ class PublisherBot(object):
 
             return markets
 
-        except Exception:
+        except (ValueError, KeyError, TypeError):
             raise
 
 
@@ -80,7 +80,7 @@ class PublisherBot(object):
             # Find the next available market hash
             n_markets = len(self._markets)
 
-            for x in range(0, n_markets):
+            for x in range(0, n_markets):                                
                 if self._markets[x]['marketHash'] == self._actual_market_hash:
                     if x == n_markets-1:
                         self._actual_market = self._markets[0]
