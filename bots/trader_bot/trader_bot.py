@@ -5,8 +5,8 @@ import base64
 import qrcode
 import tweepy
 import json
-import sys
 import logging
+import sys
 
 class TraderBot(tweepy.StreamListener, object):
     """Trader bot class"""
@@ -19,18 +19,7 @@ class TraderBot(tweepy.StreamListener, object):
     def __init__(self, auth):
         self._auth = auth
         self._stream = None
-        self._logger = logging.getLogger(__name__)
-        self._logger.setLevel(logging.INFO)
-        # create a file handler
-        handler = logging.FileHandler('trader.log')
-        handler.setLevel(logging.INFO)
-        # create a logging format
-        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        handler.setFormatter(formatter)
-        # add the handlers to the logger
-        self._logger.addHandler(handler)
-
-        #self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
+        self.setup_logger()
 
 
     def __new__(self, auth):
@@ -43,6 +32,21 @@ class TraderBot(tweepy.StreamListener, object):
             raise Exception('Authentication not provided')
 
 
+    def setup_logger(self):
+        """Sets up the logger file"""
+
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.INFO)
+        # create a file handler
+        handler = logging.FileHandler('trader.log')
+        handler.setLevel(logging.INFO)
+        # create a logging format
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        # add the handlers to the logger
+        self._logger.addHandler(handler)
+
+
     # def on_status(self, status):
     #     print status.text
 
@@ -50,13 +54,14 @@ class TraderBot(tweepy.StreamListener, object):
     def on_error(self, status_code):
         self._logger.error(status_code)
         if status_code == 420:
-            #returning False in on_data disconnects the stream
+            # returning False disconnects the stream
             return False
 
 
     def on_data(self, data):
         """This method is called when new tweets or replies are sent to the twitter account"""
 
+        self._logger.info('Data received')
         json_data = json.loads(data)
 
         if 'text' in json_data and 'in_reply_to_screen_name' in json_data \
@@ -78,7 +83,6 @@ class TraderBot(tweepy.StreamListener, object):
                 # No valid input keyword found
                 return
 
-            # TODO check if json has data, error handling
             # Example URL
             # https://beta.gnosis.pm/#/market/
             # 0x6fd8230f876fbb8137de15f05c1065d3008c030daa970fd19ba1a7b412440636/
@@ -104,11 +108,6 @@ class TraderBot(tweepy.StreamListener, object):
                         market = markets[x]
                         break
 
-                # TODO remove print commands
-                # print "Market address : " + market_address
-                # print "Market hash : " + market_hash
-                # print "Description hash : " + description_hash
-
                 if market:
                     # determine if it is ranged or discrete
                     if 'outcomes' in market['description']:
@@ -126,10 +125,9 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 0
                             qr_string = self.get_qr_text(market_hash, market_address, 0)
             except:
-                self._logger.error('Exception thrown')
+                self._logger.error('Exception thrown: %s', [sys.exc_info()[0]])
 
-            # encode Qr
-            # reply to the received tweet
+            # encode Qr and reply to the received tweet
             self._logger.info('Calling self.retweet')
             self.retweet('@%s Thanks for using TwitterBot' % received_from, tweet_id, qr_string)
 
@@ -158,7 +156,7 @@ class TraderBot(tweepy.StreamListener, object):
             return qr_string
 
         except:
-            #print sys.exc_info()
+            self._logger.error('An error occurred in get_qr_text: %s', [sys.exc_info()[0]])
             raise
 
 
@@ -181,6 +179,7 @@ class TraderBot(tweepy.StreamListener, object):
         self._logger.info('Retweeting')
         # Retweet
         response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=notification, in_reply_to_status_id=tweet_id)
+        self._logger.info('Tweet sent')
 
 
     def start_streaming(self):
