@@ -1,1 +1,1 @@
-trader: python start_trader.py --pythonpath="$PWD/bots"
+trader: cp $PWD/trader.conf /etc/supervisor/conf.d/trader.conf
