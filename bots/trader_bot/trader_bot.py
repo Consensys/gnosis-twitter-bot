@@ -6,6 +6,7 @@ import qrcode
 import tweepy
 import json
 import sys
+import logging
 
 class TraderBot(tweepy.StreamListener, object):
     """Trader bot class"""
@@ -18,6 +19,17 @@ class TraderBot(tweepy.StreamListener, object):
     def __init__(self, auth):
         self._auth = auth
         self._stream = None
+        self._logger = logging.getLogger(__name__)
+        self._logger.setLevel(logging.INFO)
+        # create a file handler
+        handler = logging.FileHandler('trader.log')
+        handler.setLevel(logging.INFO)
+        # create a logging format
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        # add the handlers to the logger
+        self._logger.addHandler(handler)
+
         #self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
 
 
@@ -35,10 +47,11 @@ class TraderBot(tweepy.StreamListener, object):
     #     print status.text
 
 
-    # def on_error(self, status_code):
-    #     if status_code == 420:
-    #         #returning False in on_data disconnects the stream
-    #         return False
+    def on_error(self, status_code):
+        self._logger.error(status_code)
+        if status_code == 420:
+            #returning False in on_data disconnects the stream
+            return False
 
 
     def on_data(self, data):
@@ -113,10 +126,11 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 0
                             qr_string = self.get_qr_text(market_hash, market_address, 0)
             except:
-                pass
+                self._logger.error('Exception thrown')
 
             # encode Qr
             # reply to the received tweet
+            self._logger.info('Calling self.retweet')
             self.retweet('@%s Thanks for using TwitterBot' % received_from, tweet_id, qr_string)
 
 
@@ -154,21 +168,24 @@ class TraderBot(tweepy.StreamListener, object):
         # TODO
         # Tweepy API.update_with_media seems to work only by providing
         # a file placed on filesystem. Files creation/deletion should be managed.
-
+        self._logger.info('Creating qrcode')
         # Create qrcode image
         qr_image = qrcode.make(qr_text)
         #img_buffer = StringIO()
         #qr_image.save(img_buffer)
         qr_image.save("qrcodes/qr_code.png")
+        self._logger.info('qrcode saved')
         #raw_qr_code = img_buffer.getvalue()
         #qr_image_base64 = base64.b64encode(raw_qr_code)
 
+        self._logger.info('Retweeting')
         # Retweet
         response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=notification, in_reply_to_status_id=tweet_id)
 
 
     def start_streaming(self):
         """Starts listening to the streaming API"""
-
+        self._logger.info('Starting streaming...')
         self._stream = tweepy.Stream(auth=self._auth.get_authentication(), listener=self._instance)
         self._stream.userstream(replies=True, async=True)
+        self._logger.info('Streaming started')
