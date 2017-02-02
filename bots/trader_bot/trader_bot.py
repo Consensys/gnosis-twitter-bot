@@ -19,7 +19,10 @@ class TraderBot(tweepy.StreamListener, object):
     def __init__(self, auth):
         self._auth = auth
         self._stream = None
+        self._logger = None
+        # setting up the logger
         self.setup_logger()
+        self._logger.info("__init__")
 
 
     def __new__(self, auth):
@@ -45,10 +48,6 @@ class TraderBot(tweepy.StreamListener, object):
         handler.setFormatter(formatter)
         # add the handlers to the logger
         self._logger.addHandler(handler)
-
-
-    # def on_status(self, status):
-    #     print status.text
 
 
     def on_error(self, status_code):
@@ -132,11 +131,6 @@ class TraderBot(tweepy.StreamListener, object):
             self.retweet('@%s Thanks for using TwitterBot' % received_from, tweet_id, qr_string)
 
 
-    # def on_direct_message(self, data):
-    #     print "on_direct received"
-    #     print data
-
-
     def get_qr_text(self, market_hash, market_address, outcome_index):
         """Calls a nodejs script which returns the qrcode content to decode"""
 
@@ -148,7 +142,12 @@ class TraderBot(tweepy.StreamListener, object):
             exit_code = process.wait()
 
             qr_string = output
-
+            print "market_hash : " + market_hash
+            print "outcome_index : " + str(outcome_index)
+            print "market_address : " + market_address
+            print "#### output ####"
+            print output
+            print err
             if err:
                 #TODO define what to do with returning errors
                 pass
@@ -157,7 +156,6 @@ class TraderBot(tweepy.StreamListener, object):
 
         except:
             self._logger.error('An error occurred in get_qr_text: %s', [sys.exc_info()[0]])
-            raise
 
 
     def retweet(self, notification, tweet_id, qr_text):
@@ -168,18 +166,29 @@ class TraderBot(tweepy.StreamListener, object):
         # a file placed on filesystem. Files creation/deletion should be managed.
         self._logger.info('Creating qrcode')
         # Create qrcode image
-        qr_image = qrcode.make(qr_text)
-        #img_buffer = StringIO()
-        #qr_image.save(img_buffer)
-        qr_image.save("qrcodes/qr_code.png")
-        self._logger.info('qrcode saved')
-        #raw_qr_code = img_buffer.getvalue()
-        #qr_image_base64 = base64.b64encode(raw_qr_code)
+        try:
+            qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
+            qr.add_data(qr_text)
+            qr.make(fit=True)
+            qr_image = qr.make_image()
 
-        self._logger.info('Retweeting')
-        # Retweet
-        response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=notification, in_reply_to_status_id=tweet_id)
-        self._logger.info('Tweet sent')
+            self._logger.info('saving qrcode to file')
+
+            # TODO create an unique image name
+            # and remove it after sendig back the tweet
+            qr_image.save("qrcodes/qr_code.png")
+
+            self._logger.info('qrcode saved')
+            self._logger.info('Retweeting')
+            # Retweet
+            try:
+                response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=notification, in_reply_to_status_id=tweet_id)
+                self._logger.info('Tweet sent')
+            except:
+                self._logger.error('An error occurred in retweet when sending response back via API: %s', [sys.exc_info()[0]])
+
+        except:
+            self._logger.error('An error occurred in retweet: %s, %s', [sys.exc_info()[0], sys.exc_info()[1]])
 
 
     def start_streaming(self):
