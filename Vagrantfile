@@ -13,6 +13,7 @@ $dependencies = <<SCRIPT
         libreadline-dev libbz2-dev libssl-dev libsqlite3-dev libxslt1-dev \
         libxml2-dev libxslt1-dev git python-pip build-essential automake libtool libffi-dev libgmp-dev pkg-config \
         memcached
+    DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor
 SCRIPT
 
 $pyenv = <<SCRIPT
@@ -51,6 +52,15 @@ $node_dependencies = <<SCRIPT
     apt-get install -y nodejs
     cd /vagrant/market-manager
     npm install
+SCRIPT
+
+$supervisor = <<SCRIPT
+    echo "
+[program:trader]
+command=python start_trader.py --pythonpath="$PWD/bots" autorestart=true
+" > /etc/supervisor/conf.d/trader.conf
+    supervisorctl reread
+    supervisorctl update
 SCRIPT
 
 # All Vagrant configuration is done below. The "2" in Vagrant.configure
@@ -133,4 +143,5 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: $pyenv, privileged: false
   config.vm.provision "shell", inline: $requirements, privileged: false
   config.vm.provision "shell", inline: $node_dependencies, privileged: true
+  config.vm.provision "shell", inline: $supervisor, privileged: true
 end
