@@ -46,6 +46,14 @@ pip install --upgrade pip
 pip install -r /vagrant/requirements.txt
 SCRIPT
 
+# $supervisor = <<SCRIPT
+#     DEBIAN_FRONTEND=noninteractive apt-get install -y supervisor \
+#     # Save config
+#     echo "[program:trader] command=python start_trader.py --pythonpath='$PWD/bots'" >> /etc/supervisor/supervisord.conf \
+#     supervisorctl reread \
+#     supervisorctl update
+# SCRIPT
+
 $node_dependencies = <<SCRIPT
     curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
     apt-get install -y nodejs
@@ -132,5 +140,6 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: $fucking_locale
   config.vm.provision "shell", inline: $pyenv, privileged: false
   config.vm.provision "shell", inline: $requirements, privileged: false
+  #config.vm.provision "shell", inline: $supervisor, privileged: true
   config.vm.provision "shell", inline: $node_dependencies, privileged: true
 end
