@@ -142,12 +142,7 @@ class TraderBot(tweepy.StreamListener, object):
             exit_code = process.wait()
 
             qr_string = output
-            print "market_hash : " + market_hash
-            print "outcome_index : " + str(outcome_index)
-            print "market_address : " + market_address
-            print "#### output ####"
-            print output
-            print err
+
             if err:
                 #TODO define what to do with returning errors
                 pass
@@ -167,16 +162,18 @@ class TraderBot(tweepy.StreamListener, object):
         self._logger.info('Creating qrcode')
         # Create qrcode image
         try:
-            qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
-            qr.add_data(qr_text)
-            qr.make(fit=True)
-            qr_image = qr.make_image()
+            # qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
+            # qr.add_data(qr_text)
+            # qr.make(fit=True)
+            # qr_image = qr.make_image()
+            with open("qrcodes/qr_code.png", "wb") as fh:
+                fh.write(qr_text.decode('base64'))
 
             self._logger.info('saving qrcode to file')
 
             # TODO create an unique image name
             # and remove it after sendig back the tweet
-            qr_image.save("qrcodes/qr_code.png")
+            #qr_image.save("qrcodes/qr_code.png")
 
             self._logger.info('qrcode saved')
             self._logger.info('Retweeting')
