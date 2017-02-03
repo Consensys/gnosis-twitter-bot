@@ -33,7 +33,8 @@ gnosis.contracts.marketFactory.buyShares(
 ).then(
   (tx) => {
     let uportTx = tx.txhash;
-    pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
-    console.log('data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64'));
+    let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
+    let imageString = /*'data:image/png;charset=utf-8;base64, ' + */pngBuffer.toString('base64');
+    console.log(imageString);
   }
 );
