@@ -7,6 +7,7 @@ const RpcSubprovider = require('web3-provider-engine/subproviders/rpc.js')
 const Web3 = require('web3');
 const engine = new ProviderEngine();
 const web3 = new Web3(engine);
+const qrImage = require('qr-image');
 
 if (process.argv.length != 5) {
   process.exit();
@@ -31,6 +32,8 @@ gnosis.contracts.marketFactory.buyShares(
   process.argv[4] // marketAddress
 ).then(
   (tx) => {
-    console.log(tx.txhash);
+    let uportTx = tx.txhash;
+    pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
+    console.log('data:image/png;charset=utf-8;base64, ' + pngBuffer.toString('base64'));
   }
 );
