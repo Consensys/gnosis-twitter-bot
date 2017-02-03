@@ -9,7 +9,7 @@
   "author": "denis@gnosis.pm",
   "license": "GPL-3.0",
   "dependencies": {
-    "bignumber.js": "^4.0.0",
+    "decimal.js": "^7.1.1",
     "gnosisjs": "^0.1.6",
     "qr-image": "^3.2.0",
     "web3": "^0.18.2",

@@ -1,6 +1,6 @@
 const gnosis = require("gnosisjs");
 const configObject = require("./config.js");
-const BigNumber = require('bignumber.js');
+const Decimal = require('decimal.js');
 const filters = {
   tags: "twitter",
   include_whitelisted_oracles: true,
@@ -47,7 +47,7 @@ gnosis.config.initialize(
                                 prices.push(
                                   gnosis.marketMaker.calcPrice(
                                     market.shares,
-                                    new BigNumber(0),
+                                    new Decimal(0),
                                     market.initialFunding
                                   )
                                 );
@@ -61,13 +61,15 @@ gnosis.config.initialize(
 
                               let boundOffset = eventObj.upperBound.minus(eventObj.lowerBound).div('1e' + description.descriptionJSON.decimals);
 
+                              let price = gnosis.marketMaker.calcPrice(
+                                market.shares,
+                                new Decimal(1),
+                                market.initialFunding
+                              ).mul(boundOffset).plus(eventObj.lowerBound.div('1e' + description.descriptionJSON.decimals));
+
                               // Current price
                               prices.push(
-                                gnosis.marketMaker.calcPrice(
-                                  market.shares,
-                                  new BigNumber(1),
-                                  market.initialFunding
-                                ).mul(boundOffset).plus(eventObj.lowerBound.div('1e' + description.descriptionJSON.decimals))
+                                price.toPrecision(Math.ceil(Math.log(boundOffset.toNumber())/Math.log(10))+3)
                               );
                             }
 
