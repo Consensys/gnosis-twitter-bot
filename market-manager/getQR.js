@@ -22,19 +22,39 @@ engine.addProvider(new RpcSubprovider({
 configObject.web3 = web3;
 engine.start();
 
-// get QR transaction string
-gnosis.contracts.marketFactory.buyShares(
-  process.argv[2], // marketHash
-  new BigNumber(process.argv[3]), // outcomeIndex
-  new BigNumber("1e18"),
-  new BigNumber("1e23"),
+let marketAddress = process.argv[4];
+let marketHash = process.argv[2];
+let outcomeIndex = new BigNumber(process.argv[3]);
+let numberOfShares = new BigNumber(1).mul(new BigNumber('1e18'));
+
+gnosis.contracts.marketFactory.getMarketsProcessed(
+  [marketHash],
   configObject,
-  process.argv[4] // marketAddress
-).then(
-  (tx) => {
-    let uportTx = tx.txhash;
-    let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
-    let imageString = /*'data:image/png;charset=utf-8;base64, ' + */pngBuffer.toString('base64');
-    console.log(imageString);
-  }
-);
+  marketAddress
+).then((response) => {
+  let globalResponse = {};
+  let market = response[marketHash];
+  let shares = market.shares;
+  let initialFunding = market.initialFunding;
+
+  // get QR transaction string
+  gnosis.contracts.marketFactory.buyShares(
+    marketHash,
+    outcomeIndex,
+    new BigNumber("1e18"),
+    new BigNumber("1e23"),
+    configObject,
+    marketAddress
+  ).then(
+    (tx) => {
+      let uportTx = tx.txhash;
+      let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
+      globalResponse.imageString = pngBuffer.toString('base64');
+      globalResponse.priceAfterBuying = gnosis.marketMaker.calcPrice(shares, outcomeIndex, initialFunding).toNumber();
+      globalResponse.priceAfterBuying = globalResponse.priceAfterBuying.toPrecision(Math.ceil(Math.log(globalResponse.priceAfterBuying)/Math.log(10))+3)
+      console.log(JSON.stringify(globalResponse));
+    }
+  );
+
+
+});
