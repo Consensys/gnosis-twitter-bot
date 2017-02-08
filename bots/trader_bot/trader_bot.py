@@ -68,19 +68,29 @@ class TraderBot(tweepy.StreamListener, object):
 
             tweet_text = json_data['text'] # get tweet text
             trading_type = None
+            number_of_tokens = 1 # 1 by default
             tweet_id = json_data['id_str']
             tweet_reply_id = json_data['in_reply_to_status_id']
             received_from = json_data['user']['screen_name']
             response = self._auth.get_api().get_status(tweet_reply_id)
 
             # Check if text contains HIGHER or LOWER keyword
-            if 'HIGHER' in tweet_text.upper():
+            upperText = tweet_text.upper().replace('@GNOSISMARKETBOT', '')
+            if 'HIGHER' in upperText:
                 trading_type = TraderBot.HIGHER_TRADE
-            elif 'LOWER' in tweet_text.upper():
+                upperText = upperText.replace('HIGHER', '').strip()
+            elif 'LOWER' in upperText:
                 trading_type = TraderBot.LOWER_TRADE
+                upperText = upperText.replace('LOWER', '').strip()
             else:
                 # No valid input keyword found
                 return
+
+            # Decode the amount of tokens invested
+            if 'ETH' in upperText:
+                number_of_tokens = ''.join(upperText.replace('ETH', '').strip().split(' '))
+            else:
+                number_of_tokens = ''.join(upperText.split(' '))
 
             # Example URL
             # https://beta.gnosis.pm/#/market/
@@ -101,6 +111,7 @@ class TraderBot(tweepy.StreamListener, object):
                 outcomeIndex = None
                 qr_string = None
                 qr_data = None
+                response_tweet_text = None
                 # Find the tweet related market
                 n_markets = len(markets)
                 for x in range(0, n_markets):
@@ -113,41 +124,41 @@ class TraderBot(tweepy.StreamListener, object):
                     if 'outcomes' in market['description']:
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 0
-                            qr_data = self.get_qr_data(market_hash, market_address, 0)
+                            qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
                         else:
                             # call qr - outcomeIndex = 1
-                            qr_data = self.get_qr_data(market_hash, market_address, 1)
+                            qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
                     else:
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 1
-                            qr_data = self.get_qr_data(market_hash, market_address, 1)
+                            qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
                         else:
                             # call qr - outcomeIndex = 0
-                            qr_data = self.get_qr_data(market_hash, market_address, 0)
+                            qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
 
                     # encode Qr and reply to the received tweet
                     self._logger.info('Calling self.retweet')
-                    tweet_text = '@%s Thanks for using TwitterBot with uPort\nPrice after buying %s' % (received_from, str(qr_data['priceAfterBuying']))
-                    self.retweet(tweet_text, tweet_id, qr_data['imageString'])
+                    response_tweet_text = '@%s Thanks for using TwitterBot with https://www.uport.me/\nShares to buy %s\nPrice after buying %s' % (received_from, str(qr_data['numberOfShares']), str(qr_data['priceAfterBuying']))
+                    self.retweet(response_tweet_text, tweet_id, qr_data['imageString'])
 
             except:
                 self._logger.error('Exception thrown: %s', exc_info=True)
 
 
-    def get_qr_data(self, market_hash, market_address, outcome_index):
+    def get_qr_data(self, market_hash, market_address, outcome_index, number_of_tokens):
         """Calls a nodejs script which returns the qrcode content to decode"""
 
         qr_string = None
         try:
             # Call node script getQR.js
-            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_QR_FILE, market_hash, str(outcome_index), market_address], stdout=PIPE)
+            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
 
             if err:
                 raise Exception(err)
 
-            self._logger.info(output);
+            #self._logger.info(output);
             qr_data = json.loads(output)
             return qr_data
 
@@ -164,10 +175,6 @@ class TraderBot(tweepy.StreamListener, object):
         self._logger.info('Creating qrcode')
         # Create qrcode image
         try:
-            # qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_H)
-            # qr.add_data(qr_text)
-            # qr.make(fit=True)
-            # qr_image = qr.make_image()
             with open("qrcodes/qr_code.png", "wb") as fh:
                 fh.write(qr_image_string.decode('base64'))
 
@@ -175,16 +182,16 @@ class TraderBot(tweepy.StreamListener, object):
 
             # TODO create an unique image name
             # and remove it after sendig back the tweet
-            #qr_image.save("qrcodes/qr_code.png")
-
             self._logger.info('qrcode saved')
             self._logger.info('Retweeting')
             # Retweet
             try:
+                #self._logger.info(tweet_text)
                 response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=tweet_text, in_reply_to_status_id=tweet_id)
                 self._logger.info('Tweet sent')
+                #self._logger.info(response)
             except:
-                self._logger.error('An error occurred in retweet when sending response back via API: %s', [sys.exc_info()[0]])
+                self._logger.error('An error occurred in retweet when sending response back via API', exc_info=True)
 
         except:
             self._logger.error('An error occurred in retweet:', exc_info=True)

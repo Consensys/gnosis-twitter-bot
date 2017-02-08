@@ -9,7 +9,7 @@ const engine = new ProviderEngine();
 const web3 = new Web3(engine);
 const qrImage = require('qr-image');
 
-if (process.argv.length != 5) {
+if (process.argv.length != 6) {
   process.exit();
 }
 
@@ -25,7 +25,7 @@ engine.start();
 let marketAddress = process.argv[4];
 let marketHash = process.argv[2];
 let outcomeIndex = new BigNumber(process.argv[3]);
-let numberOfShares = new BigNumber(1).mul(new BigNumber('1e18'));
+let userPrice = new BigNumber(process.argv[5]).mul(new BigNumber('1e18'));
 
 gnosis.contracts.marketFactory.getMarketsProcessed(
   [marketHash],
@@ -36,13 +36,21 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
   let market = response[marketHash];
   let shares = market.shares;
   let initialFunding = market.initialFunding;
+  let shareDistributionCopy = market.shares.slice(0);
+
+  let numberOfShares = gnosis.marketMaker.calcShares(
+    userPrice, // n tokens
+    outcomeIndex,
+    shareDistributionCopy,
+    initialFunding
+  );
 
   // get QR transaction string
   gnosis.contracts.marketFactory.buyShares(
     marketHash,
     outcomeIndex,
-    new BigNumber("1e18"),
-    new BigNumber("1e23"),
+    numberOfShares,
+    userPrice,
     configObject,
     marketAddress
   ).then(
@@ -50,8 +58,13 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
       let uportTx = tx.txhash;
       let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
       globalResponse.imageString = pngBuffer.toString('base64');
-      globalResponse.priceAfterBuying = gnosis.marketMaker.calcPrice(shares, outcomeIndex, initialFunding).toNumber();
+      globalResponse.numberOfShares = numberOfShares.div('1e18').toNumber();
+      
+      shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
+      globalResponse.priceAfterBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
+
       globalResponse.priceAfterBuying = globalResponse.priceAfterBuying.toPrecision(Math.ceil(Math.log(globalResponse.priceAfterBuying)/Math.log(10))+3)
+
       console.log(JSON.stringify(globalResponse));
     }
   );
