@@ -38,23 +38,6 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
   let initialFunding = market.initialFunding;
   let shareDistributionCopy = market.shares.slice(0);
 
-  // gnosis.contracts.eventFactory.getEventsProcessed([market.eventHash], null, null, configObject)
-  // .then(
-  //   (r) => {
-  //     console.log(r);
-  //   }
-  // );
-  // gnosis.contracts.marketFactory.getMarket(
-  //   marketHash,
-  //   configObject,
-  //   marketAddress,
-  //   function(e, r){
-  //     console.log("Market");
-  //     console.log(r);
-  //     console.log(r.getEvent());
-  //   }
-  // ).call();
-
   let numberOfShares = gnosis.marketMaker.calcShares(
     userPrice, // n tokens
     outcomeIndex,
@@ -72,10 +55,7 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
     marketAddress
   ).then(
     (tx) => {
-
-      // But in order to calculate 66%, you have to calculate first how many shares
-      // the user gets for 2 ETH To change `shares` accordingly before calling calcPrice for the changed price
-
+      
       let uportTx = tx.txhash;
       let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
       globalResponse.imageString = pngBuffer.toString('base64');

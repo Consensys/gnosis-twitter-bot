@@ -113,6 +113,8 @@ class TraderBot(tweepy.StreamListener, object):
                 qr_string = None
                 qr_data = None
                 response_tweet_text = '@%s ' % received_from # Thanks for using TwitterBot with https://www.uport.me/\n' % received_from
+                price_before_buying = 0
+                price_after_buying = 0
                 # Find the tweet related market
                 n_markets = len(markets)
                 for x in range(0, n_markets):
@@ -130,8 +132,10 @@ class TraderBot(tweepy.StreamListener, object):
                         else:
                             # call qr - outcomeIndex = 1
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
-
-                        response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s% to Yes %s%.' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
+                        
+                        price_before_buying = str(float(qr_data['priceBeforeBuying'])*100)
+                        price_after_buying = str(float(qr_data['priceAfterBuying'])*100)
+                        response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), price_before_buying, price_after_buying)
                     else:
                         # Ranged event
                         if trading_type == TraderBot.HIGHER_TRADE:
@@ -141,7 +145,9 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 0
                             qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
 
-                        response_tweet_text += 'By sending %s ETH the prediction will change from %s USD to %s USD' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
+                        price_before_buying = str(qr_data['priceBeforeBuying'])
+                        price_after_buying = str(qr_data['priceAfterBuying'])
+                        response_tweet_text += 'By sending %s ETH the prediction will change from %s USD to %s USD' % (str(number_of_tokens), price_before_buying, price_after_buying)
 
                     # encode Qr and reply to the received tweet
                     self._logger.info('Calling self.retweet')
