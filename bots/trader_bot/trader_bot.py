@@ -15,6 +15,7 @@ class TraderBot(tweepy.StreamListener, object):
 
     HIGHER_TRADE = 1
     LOWER_TRADE = -1
+    LOG_DIR = 'logs/trader.log'
 
     def __init__(self, auth):
         self._auth = auth
@@ -41,7 +42,7 @@ class TraderBot(tweepy.StreamListener, object):
         self._logger = logging.getLogger(__name__)
         self._logger.setLevel(logging.INFO)
         # create a file handler
-        handler = logging.FileHandler('/tmp/trader.log')
+        handler = logging.FileHandler(TraderBot.LOG_DIR)
         handler.setLevel(logging.INFO)
         # create a logging format
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -111,7 +112,7 @@ class TraderBot(tweepy.StreamListener, object):
                 outcomeIndex = None
                 qr_string = None
                 qr_data = None
-                response_tweet_text = None
+                response_tweet_text = '@%s ' % received_from # Thanks for using TwitterBot with https://www.uport.me/\n' % received_from
                 # Find the tweet related market
                 n_markets = len(markets)
                 for x in range(0, n_markets):
@@ -122,13 +123,17 @@ class TraderBot(tweepy.StreamListener, object):
                 if market:
                     # determine if it is ranged or discrete
                     if 'outcomes' in market['description']:
+                        # Discrete event
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 0
                             qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
                         else:
                             # call qr - outcomeIndex = 1
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
+
+                        response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s% to Yes %s%.' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
                     else:
+                        # Ranged event
                         if trading_type == TraderBot.HIGHER_TRADE:
                             # call qr - outcomeIndex = 1
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
@@ -136,9 +141,11 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 0
                             qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
 
+                        response_tweet_text += 'By sending %s ETH the prediction will change from %s USD to %s USD' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
+
                     # encode Qr and reply to the received tweet
                     self._logger.info('Calling self.retweet')
-                    response_tweet_text = '@%s Thanks for using TwitterBot with https://www.uport.me/\nShares to buy %s\nPrice after buying %s' % (received_from, str(qr_data['numberOfShares']), str(qr_data['priceAfterBuying']))
+                    #response_tweet_text = '@%s Thanks for using TwitterBot with https://www.uport.me/\nShares to buy %s\nPrice after buying %s' % (received_from, str(qr_data['numberOfShares']), str(qr_data['priceAfterBuying']))
                     self.retweet(response_tweet_text, tweet_id, qr_data['imageString'])
 
             except:
