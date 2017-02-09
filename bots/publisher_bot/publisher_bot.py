@@ -109,18 +109,12 @@ class PublisherBot(object):
 
         # odds
         if 'outcomes' in self._actual_market['description']:
-
-            #n_outcomes = len(self._actual_market['description']['outcomes'])
-            #for x in range(0, n_outcomes):
-            #    message += self._actual_market['description']['outcomes'][x]
-            #    message += ' (' + self._actual_market['prices'][x] + ' %) '
-            #    if x != n_outcomes-1:
-            #        message += ' / '
-
+            # discrete
             message += self._actual_market['description']['outcomes'][0] + ' '
             message += '(' + str(float(self._actual_market['prices'][0])*100) + ' %)'
 
         else:
+            # ranged
             message += ' Current ' + self._actual_market['prices'][0] + ' '
             message += self._actual_market['description']['unit']
 

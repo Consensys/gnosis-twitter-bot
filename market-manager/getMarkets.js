@@ -69,7 +69,7 @@ gnosis.config.initialize(
 
                               // Current price
                               prices.push(
-                                price.toPrecision(Math.ceil(Math.log(boundOffset.toNumber())/Math.log(10))+3)
+                                price.toPrecision(Math.ceil(Math.log(boundOffset.toNumber())/Math.log(10))+2)
                               );
                             }
 
