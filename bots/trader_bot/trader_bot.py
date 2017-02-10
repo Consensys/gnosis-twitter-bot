@@ -58,11 +58,11 @@ class TraderBot(tweepy.StreamListener, object):
             return False
 
 
-    def get_number_of_tokens_from_string(tweet_text):
+    def get_trading_and_token_number_from_string(self, tweet_text):
         """
         Returns an array containing the trading_type (1, -1) in 1st position
         and the number of tokens in 2nd position.
-        Returns False if the input text doesn't contain the trading type ('Higher', 'Lower')
+        Returns [False, False] if the input text doesn't contain the trading type ('Higher', 'Lower')
         """
         use_default_number_tokens = False
         number_of_tokens = None
@@ -81,12 +81,12 @@ class TraderBot(tweepy.StreamListener, object):
             upperText = upperText.replace('LOWER', '').strip()
         else:
             # No valid input keyword found
-            return False
+            return [False, False]
 
         # Decode the amount of tokens invested
         # If the user doesn't provide the ETH amount
         # we consider it to be 1 ETH by default
-        if trading_type == TraderBot.HIGHER_TRADE
+        if trading_type == TraderBot.HIGHER_TRADE:
             upper_text = upper_text.replace('HIGHER', '').strip()
             if len(upper_text) == 0:
                 use_default_number_tokens = True
@@ -136,9 +136,10 @@ class TraderBot(tweepy.StreamListener, object):
             received_from = json_data['user']['screen_name']
             response = self._auth.get_api().get_status(tweet_reply_id)
 
-            number_of_tokens = self.get_number_of_tokens_from_string(tweet_text)
+            trading_type, number_of_tokens = self.get_trading_and_token_number_from_string(tweet_text)
 
             if not number_of_tokens:
+                # re-tweet
                 raise Exception('Invalid command provided')
 
             # Example URL
@@ -183,6 +184,7 @@ class TraderBot(tweepy.StreamListener, object):
 
                         price_before_buying = str(float(qr_data['priceBeforeBuying'])*100)
                         price_after_buying = str(float(qr_data['priceAfterBuying'])*100)
+
                         response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), price_before_buying, price_after_buying)
                     else:
                         # Ranged event

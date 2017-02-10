@@ -56,11 +56,6 @@ class PublisherBot(object):
 
     def load_markets(self):
         try:
-            #process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE)
-            #(output, err) = process.communicate()
-            #exit_code = process.wait()
-            #self._markets = json.loads(output)
-
             self._markets = self.get_markets()
 
             if len(self._markets) == 0:
@@ -77,8 +72,12 @@ class PublisherBot(object):
             # Find the next available market hash
             n_markets = len(self._markets)
 
+            # market_found variable is used to manage 'market not found' cases
+            market_found = False
+
             for x in range(0, n_markets):
                 if self._markets[x]['marketHash'] == self._actual_market_hash:
+                    market_found = True
                     if x == n_markets-1:
                         self._actual_market = self._markets[0]
                         break
@@ -86,15 +85,17 @@ class PublisherBot(object):
                         self._actual_market = self._markets[x+1]
                         break
 
-            self._actual_market_hash = self._actual_market['marketHash']
-            # Set memcache
-            #self._memcache.set('market_hash', self._actual_market_hash)
+
+            if not market_found:
+                self._actual_market = self._markets[0]
+                self._actual_market_hash = self._actual_market['marketHash']
+            else:
+                self._actual_market_hash = self._actual_market['marketHash']
         else:
             # Set the first element of the markets array
+            # This happens when the publisher is executed for the 1st time
             self._actual_market = self._markets[0]
             self._actual_market_hash = self._actual_market['marketHash']
-            # Set memcache
-            #self._memcache.set('market_hash', self._actual_market_hash)
 
 
     def add_to_memcache(self, key, value):

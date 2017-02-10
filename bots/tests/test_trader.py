@@ -12,7 +12,7 @@ class TestTrader(unittest.TestCase):
         HIGHER_TRADE = 1
         LOWER_TRADE = -1
 
-        def get_number_of_tokens_from_string(tweet_text):
+        def get_trading_and_token_number_from_string(tweet_text):
             use_default_number_tokens = False
             number_of_tokens = None
             default_number_of_tokens = str(1)
@@ -30,7 +30,7 @@ class TestTrader(unittest.TestCase):
                 upperText = upperText.replace('LOWER', '').strip()
             else:
                 # No valid input keyword found
-                return False
+                return [False, False]
 
             # Decode the amount of tokens invested
             # If the user doesn't provide the ETH amount
@@ -78,10 +78,12 @@ class TestTrader(unittest.TestCase):
             ["lower", "1"],
             ["lower hte", "1"],
             ["lower 2hte", "1"],
-            ["lower 1 hte", "1"]
+            ["lower 1 hte", "1"],
+            ["1 hte", False]
         ]
 
-        [self.assertEquals(get_number_of_tokens_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]
+        [self.assertEquals(get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]        
+
 
     def test_discrete_event(self):
         pass
