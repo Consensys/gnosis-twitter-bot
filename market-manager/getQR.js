@@ -112,9 +112,7 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
 
                   globalResponse.priceBeforeBuying = priceBeforeBuying.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
                   globalResponse.priceAfterBuying = priceAfterBuying.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
-                  console.log(JSON.stringify(globalResponse));
-                  console.log(priceBeforeBuying);
-                  console.log(priceAfterBuying);
+                  console.log(JSON.stringify(globalResponse));                  
                 },
                 function(error){
                   // API error
