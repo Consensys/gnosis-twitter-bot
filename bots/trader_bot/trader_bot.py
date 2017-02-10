@@ -211,6 +211,10 @@ class TraderBot(tweepy.StreamListener, object):
                     #response_tweet_text = '@%s Thanks for using TwitterBot with https://www.uport.me/\nShares to buy %s\nPrice after buying %s' % (received_from, str(qr_data['numberOfShares']), str(qr_data['priceAfterBuying']))
                     self.retweet_with_media(response_tweet_text, tweet_id, qr_data['imageString'])
 
+                else:
+                    # No market found
+                    response_tweet_text += 'This marked was closed.'
+                    self.retweet(response_tweet_text, tweet_id)
             except:
                 self._logger.error('Exception thrown: %s', exc_info=True)
 
