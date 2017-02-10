@@ -58,6 +58,65 @@ class TraderBot(tweepy.StreamListener, object):
             return False
 
 
+    def get_number_of_tokens_from_string(tweet_text):
+        """
+        Returns an array containing the trading_type (1, -1) in 1st position
+        and the number of tokens in 2nd position.
+        Returns False if the input text doesn't contain the trading type ('Higher', 'Lower')
+        """
+        use_default_number_tokens = False
+        number_of_tokens = None
+        default_number_of_tokens = str(1)
+        trading_type = None
+        upper_text = tweet_text.upper()
+
+        # Detect trading type
+        # Check if text contains HIGHER or LOWER keyword
+        upperText = upper_text.replace('@GNOSISMARKETBOT', '')
+        if 'HIGHER' in upperText:
+            trading_type = TraderBot.HIGHER_TRADE
+            upperText = upperText.replace('HIGHER', '').strip()
+        elif 'LOWER' in upperText:
+            trading_type = TraderBot.LOWER_TRADE
+            upperText = upperText.replace('LOWER', '').strip()
+        else:
+            # No valid input keyword found
+            return False
+
+        # Decode the amount of tokens invested
+        # If the user doesn't provide the ETH amount
+        # we consider it to be 1 ETH by default
+        if trading_type == TraderBot.HIGHER_TRADE
+            upper_text = upper_text.replace('HIGHER', '').strip()
+            if len(upper_text) == 0:
+                use_default_number_tokens = True
+        else:
+            upper_text = upper_text.replace('LOWER', '').strip()
+            if len(upper_text) == 0:
+                use_default_number_tokens = True
+
+        if not use_default_number_tokens:
+            if 'ETH' in upper_text:
+                number_of_tokens = ''.join(upper_text.replace('ETH', '').strip().split(' '))
+            else:
+                # Detect numbers
+                _numbers = [char for char in upper_text.split(' ') if char.isdigit()]
+
+                if len(_numbers) > 1:
+                    # Adopt the default number of token value in
+                    # case the user provided not valid words
+                    number_of_tokens = default_number_of_tokens
+                elif len(_numbers) == 1:
+                    number_of_tokens = str(_numbers[0])
+                else:
+                    number_of_tokens = default_number_of_tokens
+                    #''.join(upper_text.split(' '))
+        else:
+            number_of_tokens = default_number_of_tokens
+
+        return [trading_type, number_of_tokens]
+
+
     def on_data(self, data):
         """This method is called when new tweets or replies are sent to the twitter account"""
 
@@ -69,29 +128,18 @@ class TraderBot(tweepy.StreamListener, object):
 
             tweet_text = json_data['text'] # get tweet text
             trading_type = None
-            number_of_tokens = 1 # 1 by default
+            number_of_tokens = 1
+            default_number_of_tokens = str(1)
+            use_default_number_tokens = False
             tweet_id = json_data['id_str']
             tweet_reply_id = json_data['in_reply_to_status_id']
             received_from = json_data['user']['screen_name']
             response = self._auth.get_api().get_status(tweet_reply_id)
 
-            # Check if text contains HIGHER or LOWER keyword
-            upperText = tweet_text.upper().replace('@GNOSISMARKETBOT', '')
-            if 'HIGHER' in upperText:
-                trading_type = TraderBot.HIGHER_TRADE
-                upperText = upperText.replace('HIGHER', '').strip()
-            elif 'LOWER' in upperText:
-                trading_type = TraderBot.LOWER_TRADE
-                upperText = upperText.replace('LOWER', '').strip()
-            else:
-                # No valid input keyword found
-                return
+            number_of_tokens = self.get_number_of_tokens_from_string(tweet_text)
 
-            # Decode the amount of tokens invested
-            if 'ETH' in upperText:
-                number_of_tokens = ''.join(upperText.replace('ETH', '').strip().split(' '))
-            else:
-                number_of_tokens = ''.join(upperText.split(' '))
+            if not number_of_tokens:
+                raise Exception('Invalid command provided')
 
             # Example URL
             # https://beta.gnosis.pm/#/market/
@@ -132,7 +180,7 @@ class TraderBot(tweepy.StreamListener, object):
                         else:
                             # call qr - outcomeIndex = 1
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
-                        
+
                         price_before_buying = str(float(qr_data['priceBeforeBuying'])*100)
                         price_after_buying = str(float(qr_data['priceAfterBuying'])*100)
                         response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), price_before_buying, price_after_buying)

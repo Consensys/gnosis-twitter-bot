@@ -44,12 +44,15 @@ gnosis.config.initialize(
 
                             if (description.descriptionJSON.outcomes) {
                               for (let i=0; i<description.descriptionJSON.outcomes.length; i++) {
+                                let price = gnosis.marketMaker.calcPrice(
+                                  market.shares,
+                                  new Decimal(0),
+                                  market.initialFunding
+                                );
+                                price = price.toFixed(2);
+
                                 prices.push(
-                                  gnosis.marketMaker.calcPrice(
-                                    market.shares,
-                                    new Decimal(0),
-                                    market.initialFunding
-                                  )
+                                  price
                                 );
                               }
                             }

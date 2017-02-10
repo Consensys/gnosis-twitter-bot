@@ -55,21 +55,84 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
     marketAddress
   ).then(
     (tx) => {
-      
+
       let uportTx = tx.txhash;
       let pngBuffer = qrImage.imageSync(uportTx, {type: 'png'});
+      // Set response object
       globalResponse.imageString = pngBuffer.toString('base64');
       globalResponse.numberOfShares = numberOfShares.div('1e18').toNumber();
-      // Calculate price before buying
-      var priceBeforeBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
-      // Calculate price after buying
-      shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
-      var priceAfterBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
 
-      globalResponse.priceBeforeBuying = priceBeforeBuying.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
-      globalResponse.priceAfterBuying = priceAfterBuying.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
+      gnosis.contracts.eventFactory.getEventsProcessed(
+        [market.eventHash],
+        null,
+        null,
+        configObject
+      ).then((res) => {
 
-      console.log(JSON.stringify(globalResponse));
+        let event = res[market.eventHash];
+
+        if (event.kind == 'ranged') {
+
+          let lowerBound = event.lowerBound;
+          let upperBound = event.upperBound;
+          let boundOffset = null;
+          let decimals = null;
+          let unit = null;
+
+          gnosis.api.getEvents(
+            configObject,
+            {"description_hashes" : event.descriptionHash}
+          )
+          .then(
+                function(response){
+                  decimals = JSON.parse(response.data.results[0].descriptionJSON).decimals;
+                  unit = JSON.parse(response.data.results[0].descriptionJSON).unit;
+
+                  // Calculate boundOffset
+                  boundOffset = upperBound.minus(lowerBound).div('1e' + decimals);
+
+                  // Calculate price before buying
+                  var priceBeforeBuying = gnosis.marketMaker.calcPrice(
+                    shareDistributionCopy,
+                    outcomeIndex,
+                    initialFunding
+                  )
+                  .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
+                  .toNumber();
+
+                  // Calculate price after buying
+                  shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
+                  var priceAfterBuying = gnosis.marketMaker.calcPrice(
+                    shareDistributionCopy,
+                    outcomeIndex,
+                    initialFunding
+                  )
+                  .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
+                  .toNumber();
+
+                  globalResponse.priceBeforeBuying = priceBeforeBuying.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
+                  globalResponse.priceAfterBuying = priceAfterBuying.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
+                  console.log(JSON.stringify(globalResponse));
+                  console.log(priceBeforeBuying);
+                  console.log(priceAfterBuying);
+                },
+                function(error){
+                  // API error
+                }
+          );
+        }
+        else { // Discrete event
+          // Calculate price before buying
+          var priceBeforeBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
+          // Calculate price after buying
+          shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
+          var priceAfterBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
+
+          globalResponse.priceBeforeBuying = priceBeforeBuying.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
+          globalResponse.priceAfterBuying = priceAfterBuying.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
+          console.log(JSON.stringify(globalResponse));
+        }
+      });
     }
   );
 
