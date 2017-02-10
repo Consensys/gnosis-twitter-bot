@@ -1,4 +1,5 @@
 import unittest
+from subprocess import Popen, PIPE
 
 
 class TestTrader(unittest.TestCase):
@@ -82,14 +83,33 @@ class TestTrader(unittest.TestCase):
             ["1 hte", False]
         ]
 
-        [self.assertEquals(get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]        
+        [self.assertEquals(get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]
 
 
     def test_discrete_event(self):
         pass
 
+
     def test_ranged_event(self):
         pass
+
+
+    def test_node_errors(self):
+        MARKET_MANAGER_DIR = '../market-manager/'
+        GET_MARKETS_FILE = 'getMarkets.js'
+        GET_QR_FILE = 'getQR.js'
+        
+        market_hash = "fake_market_hash"
+        outcome_index = 1
+        market_address = "0x9b40645cbc6142cdfd5441a9ad4afde8da8ed199"
+        number_of_tokens = 1
+
+        process = Popen(["node", MARKET_MANAGER_DIR + GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
+        (output, err) = process.communicate()
+        exit_code = process.wait()
+
+        self.assertTrue(exit_code==1) # code 1 means the program terminated with errors
+
 
 if __name__=='__main__':
     unittest.main()

@@ -128,9 +128,6 @@ class TraderBot(tweepy.StreamListener, object):
 
             tweet_text = json_data['text'] # get tweet text
             trading_type = None
-            number_of_tokens = 1
-            default_number_of_tokens = str(1)
-            use_default_number_tokens = False
             tweet_id = json_data['id_str']
             tweet_reply_id = json_data['in_reply_to_status_id']
             received_from = json_data['user']['screen_name']
@@ -182,6 +179,11 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 1
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
 
+                        if not qr_data:
+                            response_tweet_text += 'This marked was closed.'
+                            self.retweet(response_tweet_text, tweet_id)
+                            return
+
                         price_before_buying = str(float(qr_data['priceBeforeBuying'])*100)
                         price_after_buying = str(float(qr_data['priceAfterBuying'])*100)
 
@@ -195,21 +197,28 @@ class TraderBot(tweepy.StreamListener, object):
                             # call qr - outcomeIndex = 0
                             qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
 
+                        if not qr_data:
+                            response_tweet_text += 'This marked was closed.'
+                            self.retweet(response_tweet_text, tweet_id)
+                            return
+
                         price_before_buying = str(qr_data['priceBeforeBuying'])
                         price_after_buying = str(qr_data['priceAfterBuying'])
                         response_tweet_text += 'By sending %s ETH the prediction will change from %s USD to %s USD' % (str(number_of_tokens), price_before_buying, price_after_buying)
 
                     # encode Qr and reply to the received tweet
-                    self._logger.info('Calling self.retweet')
+                    self._logger.info('Calling self.retweet_with_media')
                     #response_tweet_text = '@%s Thanks for using TwitterBot with https://www.uport.me/\nShares to buy %s\nPrice after buying %s' % (received_from, str(qr_data['numberOfShares']), str(qr_data['priceAfterBuying']))
-                    self.retweet(response_tweet_text, tweet_id, qr_data['imageString'])
+                    self.retweet_with_media(response_tweet_text, tweet_id, qr_data['imageString'])
 
             except:
                 self._logger.error('Exception thrown: %s', exc_info=True)
 
 
     def get_qr_data(self, market_hash, market_address, outcome_index, number_of_tokens):
-        """Calls a nodejs script which returns the qrcode content to decode"""
+        """
+        Calls a nodejs script which returns the qrcode as a string, False if an error happens
+        """
 
         qr_string = None
         try:
@@ -221,16 +230,31 @@ class TraderBot(tweepy.StreamListener, object):
             if err:
                 raise Exception(err)
 
+            if exit_code == 1:
+                return False
+
             #self._logger.info(output);
             qr_data = json.loads(output)
             return qr_data
 
         except:
             self._logger.error('An error occurred in get_qr_data', exc_info=True)
+            return False
 
 
-    def retweet(self, tweet_text, tweet_id, qr_image_string):
-        """Send a tweet in reply to the receiving message, attaching the generated qrcode"""
+    def retweet(self, tweet_text, tweet_id):
+        """Sends a tweet in reply to the receiving message"""
+
+        try:
+            self._logger.info('Retweeting')
+            response = self._auth.get_api().update_status(status=tweet_text, in_reply_to_status_id=tweet_id)
+            self._logger.info('Tweet sent')
+        except:
+            self._logger.error('An error occurred in retweet when sending response back via API', exc_info=True)
+
+
+    def retweet_with_media(self, tweet_text, tweet_id, qr_image_string):
+        """Sends a tweet in reply to the receiving message, attaching the generated qrcode"""
 
         # TODO
         # Tweepy API.update_with_media seems to work only by providing
@@ -245,14 +269,10 @@ class TraderBot(tweepy.StreamListener, object):
 
             # TODO create an unique image name
             # and remove it after sendig back the tweet
-            self._logger.info('qrcode saved')
-            self._logger.info('Retweeting')
-            # Retweet
+            self._logger.info('qrcode saved, retweeting')
             try:
-                #self._logger.info(tweet_text)
                 response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=tweet_text, in_reply_to_status_id=tweet_id)
                 self._logger.info('Tweet sent')
-                #self._logger.info(response)
             except:
                 self._logger.error('An error occurred in retweet when sending response back via API', exc_info=True)
 
