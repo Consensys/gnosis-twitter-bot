@@ -112,8 +112,8 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
                       .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
                       .toNumber();
 
-                      globalResponse.priceBeforeBuying = priceBeforeBuying.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+2)
-                      globalResponse.priceAfterBuying = priceAfterBuying.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+2)
+                      globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+2)
+                      globalResponse.priceAfterBuying = priceAfterBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+2)
                       console.log(JSON.stringify(globalResponse));
                     }
                     else {
