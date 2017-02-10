@@ -80,7 +80,8 @@ gnosis.config.initialize(
                               description: description.descriptionJSON,
                               marketAddress: market.marketAddress,
                               prices: prices,
-                              descriptionHash: description.descriptionHash
+                              descriptionHash: description.descriptionHash,
+                              initialFunding: market.initialFunding
                             }
                           }
                         )

@@ -45,9 +45,6 @@ class PublisherBot(object):
             exit_code = process.wait()
             markets = json.loads(output)
 
-            #if len(self._markets) == 0:
-            #    raise Exception('No markets found')
-
             if err:
                 pass #TODO define what to do with returning errors
 
@@ -80,7 +77,7 @@ class PublisherBot(object):
             # Find the next available market hash
             n_markets = len(self._markets)
 
-            for x in range(0, n_markets):                                
+            for x in range(0, n_markets):
                 if self._markets[x]['marketHash'] == self._actual_market_hash:
                     if x == n_markets-1:
                         self._actual_market = self._markets[0]
