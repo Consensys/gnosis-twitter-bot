@@ -1,16 +1,24 @@
 {
   "name": "market-manager",
+  "eslintConfig": {
+      "env": {
+          "browser": true,
+          "node": true
+      }
+  },
   "version": "1.0.0",
   "description": "Nodejs module that allows to get twitter bot hashes",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test"
   },
   "author": "denis@gnosis.pm",
   "license": "GPL-3.0",
   "dependencies": {
+    "chai": "^3.5.0",
     "decimal.js": "^7.1.1",
     "gnosisjs": "^0.1.11",
+    "mocha": "^3.2.0",
     "qr-image": "^3.2.0",
     "web3": "^0.18.2",
     "web3-provider-engine": "^8.4.0"

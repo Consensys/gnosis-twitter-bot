@@ -4,7 +4,7 @@
   "description": "Main package.json istalls submodules",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "cd market-manager && npm test",
     "install": "cd market-manager && npm install"
   },
   "repository": {
