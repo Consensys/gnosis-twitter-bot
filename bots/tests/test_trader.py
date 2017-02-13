@@ -1,76 +1,58 @@
 import unittest
-from subprocess import Popen, PIPE
 import environ
-
-ROOT_DIR = environ.Path(__file__) - 3
-GET_MARKETS_FILE = str(ROOT_DIR.path('market-manager/getMarkets.js'))
-GET_QR_FILE = str(ROOT_DIR.path('market-manager/getQR.js'))
+import json
+import time
+from subprocess import Popen, PIPE
+from auth_factory import AuthFactory
+from trader_bot.trader_bot import TraderBot
+from publisher_bot.publisher_bot import PublisherBot
+from utils.constants import GET_MARKETS_FILE, GET_QR_FILE, MEMCACHED_LOCKING_TIME
+from utils.memcached import Memcached as memcached
 
 
 class TestTrader(unittest.TestCase):
+    """python -m unittest tests.test_trader"""
 
     def __init__(self, *args, **kwargs):
         super(TestTrader, self).__init__(*args, **kwargs)
 
 
+    def setUp(self):
+        self.auth = AuthFactory()
+        self.trader = TraderBot(self.auth)
+        self.publisher = PublisherBot(self.auth)
+
+        # Mock trader methods
+        def retweet(tweet_text, tweet_id):
+            pass
+
+        def retweet_with_media(tweet_text, tweet_id, qr_image_string):
+            pass
+
+        def get_reply_id_status(tweet_reply_id):
+            class Response:
+                def __init__(self):
+                    self._json = json.loads(json.dumps({"entities" : {"urls" : [{"expanded_url":"https://beta.gnosis.pm/#/market/0x6fd8230f876fbb8137de15f05c1065d3008c030daa970fd19ba1a7b412440636/0x9b40645cbc6142cdfd5441a9ad4afde8da8ed199/0xb914c6ecbd26da9b146499bac3c91b5236fbdae3ec1b2896323722943c022f39?t=1485430823089"}]}}))
+
+            return Response()
+
+        def get_markets():
+            markets = []
+            process = Popen(["node", GET_MARKETS_FILE, "."], stdout=PIPE, stderr=PIPE)
+            (output, err) = process.communicate()
+            exit_code = process.wait()
+            markets = json.loads(output)
+
+            return markets
+
+
+        self.trader.retweet = retweet
+        self.trader.retweet_with_media = retweet_with_media
+        self.trader.get_reply_id_status = get_reply_id_status
+        self.publisher.get_markets = get_markets
+
+
     def test_bot_commands(self):
-
-        HIGHER_TRADE = 1
-        LOWER_TRADE = -1
-
-        def get_trading_and_token_number_from_string(tweet_text):
-            use_default_number_tokens = False
-            number_of_tokens = None
-            default_number_of_tokens = str(1)
-            trading_type = None
-            upper_text = tweet_text.upper()
-
-            # Detect trading type
-            # Check if text contains HIGHER or LOWER keyword
-            upper_text = upper_text.replace('@GNOSISMARKETBOT', '')
-            if 'HIGHER' in upper_text:
-                trading_type = HIGHER_TRADE
-                upper_text = upper_text.replace('HIGHER', '').strip()
-            elif 'LOWER' in upper_text:
-                trading_type = LOWER_TRADE
-                upper_text = upper_text.replace('LOWER', '').strip()
-            else:
-                # No valid input keyword found
-                return [False, False]
-
-            # Decode the amount of tokens invested
-            # If the user doesn't provide the ETH amount
-            # we consider it to be 1 ETH by default
-            if trading_type == HIGHER_TRADE:
-                upper_text = upper_text.replace('HIGHER', '').strip()
-                if len(upper_text) == 0:
-                    use_default_number_tokens = True
-            else:
-                upper_text = upper_text.replace('LOWER', '').strip()
-                if len(upper_text) == 0:
-                    use_default_number_tokens = True
-
-            if not use_default_number_tokens:
-                if 'ETH' in upper_text:
-                    number_of_tokens = ''.join(upper_text.replace('ETH', '').strip().split(' '))
-                else:
-                    # Detect numbers
-                    _numbers = [char for char in upper_text.split(' ') if char.isdigit()]
-
-                    if len(_numbers) > 1:
-                        # Adopt the default number of token value in
-                        # case the user provided not valid words
-                        number_of_tokens = default_number_of_tokens
-                    elif len(_numbers) == 1:
-                        number_of_tokens = str(_numbers[0])
-                    else:
-                        number_of_tokens = default_number_of_tokens
-                        #''.join(upper_text.split(' '))
-            else:
-                number_of_tokens = default_number_of_tokens
-
-            return [trading_type, number_of_tokens]
-
 
         commands = [
             ["higher 2eth", "2"],
@@ -88,15 +70,23 @@ class TestTrader(unittest.TestCase):
             ["1 hte", False]
         ]
 
-        [self.assertEquals(get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]
+        [self.assertEquals(self.trader.get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]
 
 
-    def test_discrete_event(self):
-        pass
+    def test_locking_system(self):
+        timestamp = time.time() # in seconds
+        test_user_id = "123456"
+        memcached.delete(test_user_id)
+        # Verify if userid in memcached
+        last_tweet_timestamp = memcached.get(test_user_id)
+        self.assertIsNone(last_tweet_timestamp)
+        memcached.add(test_user_id, timestamp)
 
+        last_tweet_timestamp = memcached.get(test_user_id)
+        self.assertEquals(last_tweet_timestamp, timestamp)
 
-    def test_ranged_event(self):
-        pass
+        second_timestamp = time.time()
+        self.assertTrue((timestamp - last_tweet_timestamp) <= MEMCACHED_LOCKING_TIME)  
 
 
     def test_node_errors(self):
