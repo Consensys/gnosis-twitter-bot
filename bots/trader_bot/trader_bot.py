@@ -146,6 +146,7 @@ class TraderBot(tweepy.StreamListener, object):
             # Check if userid in memcached
             last_tweet_timestamp = memcached.get(received_from_id)
             can_proceed = True
+
             if last_tweet_timestamp is not None:
                 # if the user related timestamp is greater than
                 # or equal to timestamp minus MEMCACHED_LOCKING_TIME
