@@ -22,13 +22,13 @@ class TestTrader(unittest.TestCase):
 
             # Detect trading type
             # Check if text contains HIGHER or LOWER keyword
-            upperText = upper_text.replace('@GNOSISMARKETBOT', '')
-            if 'HIGHER' in upperText:
+            upper_text = upper_text.replace('@GNOSISMARKETBOT', '')
+            if 'HIGHER' in upper_text:
                 trading_type = HIGHER_TRADE
-                upperText = upperText.replace('HIGHER', '').strip()
-            elif 'LOWER' in upperText:
+                upper_text = upper_text.replace('HIGHER', '').strip()
+            elif 'LOWER' in upper_text:
                 trading_type = LOWER_TRADE
-                upperText = upperText.replace('LOWER', '').strip()
+                upper_text = upper_text.replace('LOWER', '').strip()
             else:
                 # No valid input keyword found
                 return [False, False]
@@ -98,7 +98,7 @@ class TestTrader(unittest.TestCase):
         MARKET_MANAGER_DIR = '../market-manager/'
         GET_MARKETS_FILE = 'getMarkets.js'
         GET_QR_FILE = 'getQR.js'
-        
+
         market_hash = "fake_market_hash"
         outcome_index = 1
         market_address = "0x9b40645cbc6142cdfd5441a9ad4afde8da8ed199"

@@ -53,9 +53,9 @@ class TraderBot(tweepy.StreamListener, object):
 
     def on_error(self, status_code):
         self._logger.error(status_code)
-        if status_code == 420:
+        #if status_code == 420:
             # returning False disconnects the stream
-            return False
+            #return False
 
 
     def get_trading_and_token_number_from_string(self, tweet_text):
@@ -72,13 +72,14 @@ class TraderBot(tweepy.StreamListener, object):
 
         # Detect trading type
         # Check if text contains HIGHER or LOWER keyword
-        upperText = upper_text.replace('@GNOSISMARKETBOT', '')
-        if 'HIGHER' in upperText:
+        upper_text = upper_text.replace('@GNOSISMARKETBOT', '').strip()
+
+        if 'HIGHER' in upper_text:
             trading_type = TraderBot.HIGHER_TRADE
-            upperText = upperText.replace('HIGHER', '').strip()
-        elif 'LOWER' in upperText:
+            upper_text = upper_text.replace('HIGHER', '').strip()
+        elif 'LOWER' in upper_text:
             trading_type = TraderBot.LOWER_TRADE
-            upperText = upperText.replace('LOWER', '').strip()
+            upper_text = upper_text.replace('LOWER', '').strip()
         else:
             # No valid input keyword found
             return [False, False]
@@ -180,7 +181,7 @@ class TraderBot(tweepy.StreamListener, object):
                             qr_data = self.get_qr_data(market_hash, market_address, 1, number_of_tokens)
 
                         if not qr_data:
-                            response_tweet_text += 'This marked was closed.'
+                            response_tweet_text += ' This marked was closed.'
                             self.retweet(response_tweet_text, tweet_id)
                             return
 
@@ -198,6 +199,7 @@ class TraderBot(tweepy.StreamListener, object):
                             qr_data = self.get_qr_data(market_hash, market_address, 0, number_of_tokens)
 
                         if not qr_data:
+                            self._logger.info('No qr_data found')
                             response_tweet_text += 'This marked was closed.'
                             self.retweet(response_tweet_text, tweet_id)
                             return
@@ -213,6 +215,9 @@ class TraderBot(tweepy.StreamListener, object):
 
                 else:
                     # No market found
+                    self._logger.info('No market found')
+                    self._logger.info(market_hash)
+                    self._logger.info(markets)
                     response_tweet_text += 'This marked was closed.'
                     self.retweet(response_tweet_text, tweet_id)
             except:

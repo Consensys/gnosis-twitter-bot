@@ -1,4 +1,4 @@
-from authFactory import AuthFactory
+from auth_factory import AuthFactory
 from publisher_bot.publisher_bot import PublisherBot
 from trader_bot.trader_bot import TraderBot
 

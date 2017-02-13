@@ -96,17 +96,17 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
                       // Calculate price before buying
                       var priceBeforeBuying = gnosis.marketMaker.calcPrice(
                         shareDistributionCopy,
-                        outcomeIndex,
+                        new BigNumber(1), // by default 1 for ranged events
                         initialFunding
                       )
                       .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
                       .toNumber();
 
                       // Calculate price after buying
-                      shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
+                      shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(numberOfShares);
                       var priceAfterBuying = gnosis.marketMaker.calcPrice(
                         shareDistributionCopy,
-                        outcomeIndex,
+                        new BigNumber(1), // by default 1 for ranged events
                         initialFunding
                       )
                       .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
@@ -131,7 +131,7 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
             // Calculate price before buying
             var priceBeforeBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
             // Calculate price after buying
-            shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(userPrice);
+            shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(numberOfShares);
             var priceAfterBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
 
             globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)

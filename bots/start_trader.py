@@ -1,5 +1,5 @@
 from publisher_bot.publisher_bot import PublisherBot
-from botFactory import BotFactory
+from bot_factory import BotFactory
 import memcache
 
 if __name__=='__main__':
