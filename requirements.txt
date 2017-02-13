@@ -4,3 +4,5 @@ python-memcached==1.53
 tweepy==3.5.0
 Pillow==4.0.0
 qrcode==5.3
+# environment handling
+django-environ==0.4.0
