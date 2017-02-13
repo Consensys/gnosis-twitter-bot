@@ -1,5 +1,10 @@
 import unittest
 from subprocess import Popen, PIPE
+import environ
+
+ROOT_DIR = environ.Path(__file__) - 3
+GET_MARKETS_FILE = str(ROOT_DIR.path('market-manager/getMarkets.js'))
+GET_QR_FILE = str(ROOT_DIR.path('market-manager/getQR.js'))
 
 
 class TestTrader(unittest.TestCase):
@@ -95,16 +100,12 @@ class TestTrader(unittest.TestCase):
 
 
     def test_node_errors(self):
-        MARKET_MANAGER_DIR = '../market-manager/'
-        GET_MARKETS_FILE = 'getMarkets.js'
-        GET_QR_FILE = 'getQR.js'
-
         market_hash = "fake_market_hash"
         outcome_index = 1
         market_address = "0x9b40645cbc6142cdfd5441a9ad4afde8da8ed199"
         number_of_tokens = 1
 
-        process = Popen(["node", MARKET_MANAGER_DIR + GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
+        process = Popen(["node", GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
         (output, err) = process.communicate()
         exit_code = process.wait()
 
