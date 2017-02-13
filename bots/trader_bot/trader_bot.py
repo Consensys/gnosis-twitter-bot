@@ -1,4 +1,6 @@
 from publisher_bot.publisher_bot import PublisherBot
+from utils.memcached import Memcached as memcached
+from utils.constants import GET_QR_FILE, GNOSIS_URL, MEMCACHED_LOCKING_TIME
 from subprocess import Popen, PIPE
 from StringIO import StringIO
 import base64
@@ -7,6 +9,7 @@ import tweepy
 import json
 import logging
 import sys
+import time
 
 class TraderBot(tweepy.StreamListener, object):
     """Trader bot class"""
@@ -118,6 +121,10 @@ class TraderBot(tweepy.StreamListener, object):
         return [trading_type, number_of_tokens]
 
 
+    def get_reply_id_status(self, tweet_reply_id):
+        return self._auth.get_api().get_status(tweet_reply_id)
+
+
     def on_data(self, data):
         """This method is called when new tweets or replies are sent to the twitter account"""
 
@@ -127,17 +134,37 @@ class TraderBot(tweepy.StreamListener, object):
         if 'text' in json_data and 'in_reply_to_screen_name' in json_data \
             and json_data['in_reply_to_screen_name'] == 'gnosismarketbot':
 
+            timestamp = time.time() # time in seconds since the epoc
             tweet_text = json_data['text'] # get tweet text
             trading_type = None
             tweet_id = json_data['id_str']
             tweet_reply_id = json_data['in_reply_to_status_id']
             received_from = json_data['user']['screen_name']
-            response = self._auth.get_api().get_status(tweet_reply_id)
+            received_from_id = str(json_data['user']['id_str'])
+            response_tweet_text = '@%s ' % received_from # Thanks for using TwitterBot with https://www.uport.me/\n' % received_from
 
+            # Check if userid in memcached
+            last_tweet_timestamp = memcached.get(received_from_id)
+            if last_tweet_timestamp is not None:
+                # if the user related timestamp is greater than
+                # or equal to timestamp minus MEMCACHED_LOCKING_TIME
+                # we can proceed
+                if (timestamp - last_tweet_timestamp) < MEMCACHED_LOCKING_TIME:
+                    return
+                else:
+                    memcached.add(received_from_id, timestamp)
+            else:
+                # Save data to memcached
+                memcached.add(received_from_id, timestamp)
+
+            response = self.get_reply_id_status(tweet_reply_id) #self._auth.get_api().get_status(tweet_reply_id)
+            # Check if the tweet-command is well formed
             trading_type, number_of_tokens = self.get_trading_and_token_number_from_string(tweet_text)
 
             if not number_of_tokens:
                 # re-tweet
+                response_tweet_text += 'Wrong TwitterBot usage. Correct command: higher|lower amount eth.\nExample: higher 2 eth'
+                self.retweet(response_tweet_text, tweet_id)
                 raise Exception('Invalid command provided')
 
             # Example URL
@@ -146,7 +173,7 @@ class TraderBot(tweepy.StreamListener, object):
             # 0x9b40645cbc6142cdfd5441a9ad4afde8da8ed199/
             # 0xb914c6ecbd26da9b146499bac3c91b5236fbdae3ec1b2896323722943c022f39?t=1485430823089
             market_url = response._json['entities']['urls'][0]['expanded_url']
-            url_components = market_url[len(PublisherBot.GNOSIS_URL)::].split('/')
+            url_components = market_url[len(GNOSIS_URL)::].split('/')
             description_hash = url_components[0]
             market_address = url_components[1]
             market_hash = url_components[2].split('?')[0]
@@ -159,7 +186,6 @@ class TraderBot(tweepy.StreamListener, object):
                 outcomeIndex = None
                 qr_string = None
                 qr_data = None
-                response_tweet_text = '@%s ' % received_from # Thanks for using TwitterBot with https://www.uport.me/\n' % received_from
                 price_before_buying = 0
                 price_after_buying = 0
                 # Find the tweet related market
@@ -215,9 +241,6 @@ class TraderBot(tweepy.StreamListener, object):
 
                 else:
                     # No market found
-                    self._logger.info('No market found')
-                    self._logger.info(market_hash)
-                    self._logger.info(markets)
                     response_tweet_text += 'This marked was closed.'
                     self.retweet(response_tweet_text, tweet_id)
             except:
@@ -232,7 +255,7 @@ class TraderBot(tweepy.StreamListener, object):
         qr_string = None
         try:
             # Call node script getQR.js
-            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
+            process = Popen(["node", GET_QR_FILE, market_hash, str(outcome_index), market_address, str(number_of_tokens)], stdout=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
 
