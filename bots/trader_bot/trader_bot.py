@@ -139,7 +139,6 @@ class TraderBot(tweepy.StreamListener, object):
         """
         Args:
             username: the username to check
-
         Returns:
             True if username is whitelisted, False otherwise
         """
@@ -175,7 +174,7 @@ class TraderBot(tweepy.StreamListener, object):
             # Check if userid in memcached
             last_tweet_timestamp = memcached.get(received_from_id)
             can_proceed = True # False if user is locked
-            
+
             # Disable lock for users in whitelist
             if not self.is_user_whitelisted(received_from):
                 if last_tweet_timestamp is not None:

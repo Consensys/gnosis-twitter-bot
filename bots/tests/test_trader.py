@@ -106,7 +106,6 @@ class TestTrader(unittest.TestCase):
     def test_whitelisted_users(self):
         self.assertFalse(self.trader.is_user_whitelisted("giacomolicari"))
         os.environ['whitelisted_users'] = 'giacomolicari,denisgranha,stefangeorge'
-        print os.getenv('whitelisted_users')
         self.assertTrue(self.trader.is_user_whitelisted("giacomolicari"))
         self.assertFalse(self.trader.is_user_whitelisted("john"))
 

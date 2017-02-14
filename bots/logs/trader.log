@@ -1,0 +1,42 @@
+2017-02-09 15:14:59,316 - trader_bot.trader_bot - INFO - __init__
+2017-02-09 15:14:59,316 - trader_bot.trader_bot - INFO - Starting streaming...
+2017-02-09 15:14:59,320 - trader_bot.trader_bot - INFO - Streaming started
+2017-02-09 15:15:32,155 - trader_bot.trader_bot - INFO - __init__
+2017-02-09 15:15:32,155 - trader_bot.trader_bot - INFO - Starting streaming...
+2017-02-09 15:15:32,161 - trader_bot.trader_bot - INFO - Streaming started
+2017-02-09 15:45:09,430 - trader_bot.trader_bot - INFO - Data received
+2017-02-09 15:45:09,463 - trader_bot.trader_bot - INFO - Data received
+2017-02-09 15:45:21,144 - trader_bot.trader_bot - ERROR - An error occurred in get_qr_data
+Traceback (most recent call last):
+  File "/vagrant/bots/trader_bot/trader_bot.py", line 169, in get_qr_data
+    qr_data = json.loads(output)
+  File "/home/vagrant/.pyenv/versions/2.7.9/lib/python2.7/json/__init__.py", line 338, in loads
+    return _default_decoder.decode(s)
+  File "/home/vagrant/.pyenv/versions/2.7.9/lib/python2.7/json/decoder.py", line 369, in decode
+    raise ValueError(errmsg("Extra data", s, end, len(s)))
+ValueError: Extra data: line 2 column 1 - line 12 column 1 (char 2837 - 3264)
+2017-02-09 15:45:21,354 - trader_bot.trader_bot - ERROR - Exception thrown: %s
+Traceback (most recent call last):
+  File "/vagrant/bots/trader_bot/trader_bot.py", line 134, in on_data
+    response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s% to Yes %s%.' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
+TypeError: 'NoneType' object has no attribute '__getitem__'
+2017-02-14 11:42:12,082 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,083 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,083 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,843 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,845 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,845 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
