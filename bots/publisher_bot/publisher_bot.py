@@ -4,26 +4,21 @@ import memcache
 import json
 import tweepy
 import time
+from utils.memcached import Memcached as memcached
+from utils.constants import GET_MARKETS_FILE, GNOSIS_URL
 
 class PublisherBot(object):
     """Publisher bot class"""
 
     _instance = None
 
-    # Constants - TODO put them in a common configuration file
-    GNOSIS_TWITTER_NAME = '@gnosismarketbot'
-    GNOSIS_URL = 'https://beta.gnosis.pm/#/market/'
-    MEMCACHE_URL = os.getenv('MEMCACHED_URL', '127.0.0.1:11211')
-    MARKET_MANAGER_DIR = '../market-manager/'
-    GET_MARKETS_FILE = 'getMarkets.js'
-    GET_QR_FILE = 'getQR.js'
-
     def __init__(self, auth):
         self._auth = auth
         self._actual_market = {}
         self._actual_market_hash = None
         self._markets = []
-        self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
+        #self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
+
 
     def __new__(self, auth):
         if auth:
@@ -40,7 +35,7 @@ class PublisherBot(object):
         markets = []
 
         try:
-            process = Popen(["node", PublisherBot.MARKET_MANAGER_DIR + PublisherBot.GET_MARKETS_FILE, "."], stdout=PIPE, stderr=PIPE)
+            process = Popen(["node", GET_MARKETS_FILE, "."], stdout=PIPE, stderr=PIPE)
             (output, err) = process.communicate()
             exit_code = process.wait()
             markets = json.loads(output)
@@ -54,6 +49,10 @@ class PublisherBot(object):
             raise
 
 
+    def get_actual_market(self):
+        return self._actual_market
+
+
     def load_markets(self):
         try:
             self._markets = self.get_markets()
@@ -65,9 +64,9 @@ class PublisherBot(object):
             raise
 
         # 1st chech if cache contains the market hash
-        if self._memcache.get('market_hash'):
+        if memcached.get('market_hash'):
 
-            self._actual_market_hash = self._memcache.get('market_hash')
+            self._actual_market_hash = memcached.get('market_hash')
 
             # Find the next available market hash
             n_markets = len(self._markets)
@@ -98,10 +97,6 @@ class PublisherBot(object):
             self._actual_market_hash = self._actual_market['marketHash']
 
 
-    def add_to_memcache(self, key, value):
-        self._memcache.set(key, value)
-
-
     def tweet_new_market(self):
         # get Twitter API instance
         api = self._auth.get_api()
@@ -120,12 +115,13 @@ class PublisherBot(object):
             message += self._actual_market['description']['unit']
 
         # marketHashAsLink
-        message += ' ' + PublisherBot.GNOSIS_URL
+        message += ' ' + GNOSIS_URL
         message += self._actual_market['descriptionHash'] + '/'
         message += self._actual_market['marketAddress'] + '/'
         message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
-
+        
         res = api.update_status(message)
 
         # Set memcache
-        self.add_to_memcache('market_hash', self._actual_market_hash)
+        memcached.add('market_hash', self._actual_market_hash)
+        #self.add_to_memcache('market_hash', self._actual_market_hash)
