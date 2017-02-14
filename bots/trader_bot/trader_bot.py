@@ -1,6 +1,6 @@
 from publisher_bot.publisher_bot import PublisherBot
 from utils.memcached import Memcached as memcached
-from utils.constants import GET_QR_FILE, GNOSIS_URL, MEMCACHED_LOCKING_TIME
+from utils.constants import GET_QR_FILE, GNOSIS_URL, MEMCACHED_LOCKING_TIME, UPORT_URL
 from subprocess import Popen, PIPE
 from StringIO import StringIO
 import base64
@@ -218,7 +218,7 @@ class TraderBot(tweepy.StreamListener, object):
                             price_before_buying = str(float(qr_data['priceBeforeBuying'])*100)
                             price_after_buying = str(float(qr_data['priceAfterBuying'])*100)
 
-                            response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), price_before_buying, price_after_buying)
+                            response_tweet_text += 'By sending %s ETH with %s the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), UPORT_URL, price_before_buying, price_after_buying)
                         else:
                             # Ranged event
                             if trading_type == TraderBot.HIGHER_TRADE:
@@ -236,7 +236,7 @@ class TraderBot(tweepy.StreamListener, object):
 
                             price_before_buying = str(qr_data['priceBeforeBuying'])
                             price_after_buying = str(qr_data['priceAfterBuying'])
-                            response_tweet_text += 'By sending %s ETH the prediction will change from %s USD to %s USD' % (str(number_of_tokens), price_before_buying, price_after_buying)
+                            response_tweet_text += 'By sending %s ETH with %s the prediction will change from %s USD to %s USD' % (str(number_of_tokens), UPORT_URL, price_before_buying, price_after_buying)
 
                         # encode Qr and reply to the received tweet
                         self._logger.info('Calling self.retweet_with_media')
