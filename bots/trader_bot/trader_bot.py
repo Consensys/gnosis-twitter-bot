@@ -9,7 +9,6 @@ import tweepy
 import json
 import logging
 import sys
-import os
 import time
 
 class TraderBot(tweepy.StreamListener, object):
@@ -64,12 +63,9 @@ class TraderBot(tweepy.StreamListener, object):
 
     def get_trading_and_token_number_from_string(self, tweet_text):
         """
-        Args:
-            tweet_text: String containing the tweet
-        Return:
-            an array containing the trading_type (1, -1) in 1st position
-            and the number of tokens in 2nd position.
-            Returns [False, False] if the input text doesn't contain the trading type ('Higher', 'Lower')
+        Returns an array containing the trading_type (1, -1) in 1st position
+        and the number of tokens in 2nd position.
+        Returns [False, False] if the input text doesn't contain the trading type ('Higher', 'Lower')
         """
         use_default_number_tokens = False
         number_of_tokens = None
@@ -126,36 +122,11 @@ class TraderBot(tweepy.StreamListener, object):
 
 
     def get_reply_id_status(self, tweet_reply_id):
-        """Calls the Twitter API and returns the related tweet object
-        Args:
-            tweet_reply_id: TwitterBot tweet id
-        Returns:
-            response Object
-        """
         return self._auth.get_api().get_status(tweet_reply_id)
 
 
-    def is_user_whitelisted(self, username):
-        """
-        Args:
-            username: the username to check
-
-        Returns:
-            True if username is whitelisted, False otherwise
-        """
-        whitelisted_users = os.getenv('whitelisted_users')
-
-        if whitelisted_users is not None:
-            return len(filter(lambda u : u == username, whitelisted_users.split(','))) > 0
-
-        return False
-
-
     def on_data(self, data):
-        """This method is called when new tweets or replies are sent to the twitter account
-        Args:
-            data: JSON object
-        """
+        """This method is called when new tweets or replies are sent to the twitter account"""
 
         self._logger.info('Data received')
         json_data = json.loads(data)
@@ -174,22 +145,20 @@ class TraderBot(tweepy.StreamListener, object):
 
             # Check if userid in memcached
             last_tweet_timestamp = memcached.get(received_from_id)
-            can_proceed = True # False if user is locked
-            
-            # Disable lock for users in whitelist
-            if not self.is_user_whitelisted(received_from):
-                if last_tweet_timestamp is not None:
-                    # if the user related timestamp is greater than
-                    # or equal to timestamp minus MEMCACHED_LOCKING_TIME
-                    # we can proceed
-                    if (timestamp - last_tweet_timestamp) < MEMCACHED_LOCKING_TIME:
-                        can_proceed = False
-                    else:
-                        # Save data to memcached
-                        memcached.add(received_from_id, timestamp)
+            can_proceed = True
+
+            if last_tweet_timestamp is not None:
+                # if the user related timestamp is greater than
+                # or equal to timestamp minus MEMCACHED_LOCKING_TIME
+                # we can proceed
+                if (timestamp - last_tweet_timestamp) < MEMCACHED_LOCKING_TIME:
+                    can_proceed = False
                 else:
                     # Save data to memcached
                     memcached.add(received_from_id, timestamp)
+            else:
+                # Save data to memcached
+                memcached.add(received_from_id, timestamp)
 
             if can_proceed:
                 response = self.get_reply_id_status(tweet_reply_id) #self._auth.get_api().get_status(tweet_reply_id)

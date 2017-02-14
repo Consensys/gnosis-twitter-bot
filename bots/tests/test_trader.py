@@ -2,7 +2,6 @@ import unittest
 import environ
 import json
 import time
-import os
 from subprocess import Popen, PIPE
 from auth_factory import AuthFactory
 from trader_bot.trader_bot import TraderBot
@@ -87,7 +86,7 @@ class TestTrader(unittest.TestCase):
         self.assertEquals(last_tweet_timestamp, timestamp)
 
         second_timestamp = time.time()
-        self.assertTrue((timestamp - last_tweet_timestamp) <= MEMCACHED_LOCKING_TIME)
+        self.assertTrue((timestamp - last_tweet_timestamp) <= MEMCACHED_LOCKING_TIME)  
 
 
     def test_node_errors(self):
@@ -101,14 +100,6 @@ class TestTrader(unittest.TestCase):
         exit_code = process.wait()
 
         self.assertTrue(exit_code==1) # code 1 means the program terminated with errors
-
-
-    def test_whitelisted_users(self):
-        self.assertFalse(self.trader.is_user_whitelisted("giacomolicari"))
-        os.environ['whitelisted_users'] = 'giacomolicari,denisgranha,stefangeorge'
-        print os.getenv('whitelisted_users')
-        self.assertTrue(self.trader.is_user_whitelisted("giacomolicari"))
-        self.assertFalse(self.trader.is_user_whitelisted("john"))
 
 
 if __name__=='__main__':
