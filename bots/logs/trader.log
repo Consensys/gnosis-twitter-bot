@@ -20,3 +20,23 @@ Traceback (most recent call last):
   File "/vagrant/bots/trader_bot/trader_bot.py", line 134, in on_data
     response_tweet_text += 'By sending %s ETH the prediction will change from Yes %s% to Yes %s%.' % (str(number_of_tokens), str(qr_data['priceBeforeBuying']), str(qr_data['priceAfterBuying']))
 TypeError: 'NoneType' object has no attribute '__getitem__'
+2017-02-14 11:42:12,082 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,083 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,083 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:12,087 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:16,472 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,843 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,845 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,845 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:30,849 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
+2017-02-14 11:42:35,130 - trader_bot.trader_bot - INFO - __init__
