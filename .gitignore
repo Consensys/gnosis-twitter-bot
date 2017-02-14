@@ -94,3 +94,4 @@ ENV/
 *node_modules
 
 EXPORT_ENV_VARS.sh
+bots/logs/
