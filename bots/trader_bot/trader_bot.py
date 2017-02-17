@@ -348,7 +348,10 @@ class TraderBot(tweepy.StreamListener, object):
 
     def start_streaming(self):
         """Starts listening to the streaming API"""
-        self._logger.info('Starting streaming...')
-        self._stream = tweepy.Stream(auth=self._auth.get_authentication(), listener=self._instance)
-        self._stream.userstream(replies=True, async=True)
-        self._logger.info('Streaming started')
+        try:
+            self._logger.info('Starting streaming...')
+            self._stream = tweepy.Stream(auth=self._auth.get_authentication(), listener=self._instance)
+            self._stream.userstream(replies=True, async=True)
+            self._logger.info('Streaming started')
+        except:
+            self._logger.error('An error occurred:', exc_info=True)
