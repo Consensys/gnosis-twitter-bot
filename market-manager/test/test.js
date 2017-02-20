@@ -7,6 +7,10 @@ describe('get markets', function () {
 
     childProcess.exec('node getMarkets.js', function(e, out) {
       expect(e).to.be.null;
+      if (!out) {
+        done();
+      }
+
       const markets = JSON.parse(out);
       expect(markets).to.be.a('array');
       expect(markets).to.have.length.above(1);
