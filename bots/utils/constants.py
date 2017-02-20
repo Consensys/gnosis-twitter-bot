@@ -14,3 +14,4 @@ GET_MARKETS_FILE = str(ROOT_DIR.path('market-manager/getMarkets.js'))
 GET_QR_FILE = str(ROOT_DIR.path('market-manager/getQR.js'))
 
 MEMCACHED_LOCKING_TIME= (5*60) # 5 mins in seconds
+TWITTER_SCREEN_NAME='gnosismarketbot'
