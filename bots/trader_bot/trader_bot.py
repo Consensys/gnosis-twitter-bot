@@ -174,7 +174,7 @@ class TraderBot(tweepy.StreamListener, object):
                 # Get the original tweet
                 original_tweet_response = self.get_reply_id_status(tweet_reply_id)
 
-                if not original_tweet_response.in_reply_to_status_id:                    
+                if not original_tweet_response.in_reply_to_status_id:
                     # Check if userid in memcached
                     last_tweet_timestamp = memcached.get(received_from_id)
                     can_proceed = True # False if user is locked
@@ -248,8 +248,8 @@ class TraderBot(tweepy.StreamListener, object):
                                         self.retweet(response_tweet_text, tweet_id)
                                         return
 
-                                    price_before_buying = str( (1 - float(qr_data['priceBeforeBuying']) ) * 100)
-                                    price_after_buying = str( (1 - float(qr_data['priceAfterBuying']) ) * 100)
+                                    price_before_buying = str( 100 - float(qr_data['priceBeforeBuying']) * 100)
+                                    price_after_buying = str( 100 - float(qr_data['priceAfterBuying']) * 100)
 
                                     response_tweet_text += 'By sending %s ETH with %s the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), UPORT_URL, price_before_buying, price_after_buying)
                                 else:
