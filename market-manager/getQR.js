@@ -112,8 +112,8 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
                       .mul(boundOffset).plus(lowerBound.div('1e' + decimals))
                       .toNumber();
 
-                      globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+2)
-                      globalResponse.priceAfterBuying = priceAfterBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+2)
+                      globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(3); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+2)
+                      globalResponse.priceAfterBuying = priceAfterBuying.toFixed(3); //.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+2)
                       console.log(JSON.stringify(globalResponse));
                     }
                     else {
@@ -134,8 +134,8 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
             shareDistributionCopy[outcomeIndex] = shareDistributionCopy[outcomeIndex].minus(numberOfShares);
             var priceAfterBuying = gnosis.marketMaker.calcPrice(shareDistributionCopy, outcomeIndex, initialFunding).toNumber();
 
-            globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
-            globalResponse.priceAfterBuying = priceAfterBuying.toFixed(2); //.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
+            globalResponse.priceBeforeBuying = priceBeforeBuying.toFixed(3); //.toPrecision(Math.ceil(Math.log(priceBeforeBuying)/Math.log(10))+3)
+            globalResponse.priceAfterBuying = priceAfterBuying.toFixed(3); //.toPrecision(Math.ceil(Math.log(priceAfterBuying)/Math.log(10))+3)
             console.log(JSON.stringify(globalResponse));
           }
         }, (e) => {

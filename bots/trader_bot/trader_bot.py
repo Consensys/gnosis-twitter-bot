@@ -248,8 +248,12 @@ class TraderBot(tweepy.StreamListener, object):
                                         self.retweet(response_tweet_text, tweet_id)
                                         return
 
-                                    price_before_buying = str( 100 - float(qr_data['priceBeforeBuying']) * 100)
-                                    price_after_buying = str( 100 - float(qr_data['priceAfterBuying']) * 100)
+                                    if trading_type == TraderBot.HIGHER_TRADE:
+                                        price_before_buying = str(float(qr_data['priceBeforeBuying']) * 100)
+                                        price_after_buying = str(float(qr_data['priceAfterBuying']) * 100)
+                                    else:
+                                        price_before_buying = str( 100 - float(qr_data['priceBeforeBuying']) * 100)
+                                        price_after_buying = str( 100 - float(qr_data['priceAfterBuying']) * 100)
 
                                     response_tweet_text += 'By sending %s ETH with %s the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), UPORT_URL, price_before_buying, price_after_buying)
                                 else:
