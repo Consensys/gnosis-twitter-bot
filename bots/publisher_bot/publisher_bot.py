@@ -100,7 +100,8 @@ class PublisherBot(object):
                     self.tweet_new_market(False)
                     time.sleep(1)
 
-                memcached.add('number_of_markets', n_markets)
+            # Update memcached number_of_markets
+            memcached.add('number_of_markets', n_markets)
         else:
             # Memcached variable wasn't setted
             memcached.add('number_of_markets', len(self._markets))
