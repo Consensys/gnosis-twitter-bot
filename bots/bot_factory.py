@@ -18,6 +18,10 @@ class BotFactory:
         self._publisher.load_markets()
         self._publisher.tweet_new_market()
 
+    def publish_newest_markets(self):
+        self._publisher = PublisherBot(self._auth)        
+        self._publisher.tweet_newest_markets()
+
     def start_trader_bot(self):
         self._trader = TraderBot(self._auth)
         self._trader.start_streaming()

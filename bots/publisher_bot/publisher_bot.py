@@ -6,6 +6,7 @@ import tweepy
 import time
 from utils.memcached import Memcached as memcached
 from utils.constants import GET_MARKETS_FILE, GNOSIS_URL
+from datetime import datetime
 
 class PublisherBot(object):
     """Publisher bot class"""
@@ -17,8 +18,6 @@ class PublisherBot(object):
         self._actual_market = {}
         self._actual_market_hash = None
         self._markets = []
-        #self._memcache = memcache.Client([PublisherBot.MEMCACHE_URL], cache_cas=True)
-
 
     def __new__(self, auth):
         if auth:
@@ -53,11 +52,69 @@ class PublisherBot(object):
         return self._actual_market
 
 
-    def load_markets(self):
+    def sort_markets_by_createdAt(self, a, b):
+        """
+        Comparator which sorts a list of markets by createdAt attribute DESC.
+        CreatedAt must be compliant with ISO-8601, example: 2017-02-27T17:39:03.000Z
+        """
+        date_a = datetime.strptime(a['createdAt'].split('.')[0], '%Y-%m-%dT%H:%M:%S')
+        date_b = datetime.strptime(b['createdAt'].split('.')[0], '%Y-%m-%dT%H:%M:%S')
+        if a < b:
+            return 1
+        elif b < a:
+            return -1
+        else:
+            return 0
+
+
+    def tweet_newest_markets(self):
+        """
+        Publishes the newest markets.
+        This method should be called repeatedly in order to publish
+        the latest markets created.
+        """
+        n_markets = None
+        n_new_markets = None
+
         try:
             self._markets = self.get_markets()
+            n_markets = len(self._markets)
 
-            if len(self._markets) == 0:
+            if n_markets == 0:
+                raise Exception('No markets found')
+
+        except Exception:
+            raise
+
+        if(memcached.get('number_of_markets')): # Number of markets got previously
+            if memcached.get('number_of_markets') < n_markets:
+                n_new_markets = n_markets - memcached.get('number_of_markets')
+                # One or more events have been published
+                sorted_markets = sorted(self._markets, cmp=self.sort_markets_by_createdAt)
+                # Get new markets
+                new_markets = sorted_markets[::n_new_markets]
+
+                for x in range(0, len(new_markets)):
+                    self._actual_market = new_markets[x]
+                    self.tweet_new_market()
+                    time.sleep(1)
+
+                memcached.add('number_of_markets', n_markets)
+        else:
+            # Memcached variable wasn't setted
+            memcached.add('number_of_markets', len(self._markets))
+
+    def load_markets(self):
+        """
+        Loads new markets and stores the next market to publish
+        """
+        n_markets = None
+
+        try:
+            self._markets = self.get_markets()
+            n_markets = len(self._markets)
+
+            if n_markets == 0:
                 raise Exception('No markets found')
 
         except Exception:
@@ -69,8 +126,6 @@ class PublisherBot(object):
             self._actual_market_hash = memcached.get('market_hash')
 
             # Find the next available market hash
-            n_markets = len(self._markets)
-
             # market_found variable is used to manage 'market not found' cases
             market_found = False
 
@@ -119,7 +174,7 @@ class PublisherBot(object):
         message += self._actual_market['descriptionHash'] + '/'
         message += self._actual_market['marketAddress'] + '/'
         message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
-        
+
         res = api.update_status(message)
 
         # Set memcache

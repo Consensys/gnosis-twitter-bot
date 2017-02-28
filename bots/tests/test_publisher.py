@@ -26,6 +26,14 @@ class TestPublisher(unittest.TestCase):
         self.publisher.load_markets()
         self.assertIsNotNone(self.publisher.get_actual_market())
 
+    def test_markets_sort(self):
+        markets = [{'createdAt' : '2017-02-25T17:47:15.006939Z'}, \
+                {'createdAt' : '2017-02-21T17:47:15.006939Z'}, \
+                {'createdAt' : '2017-02-28T17:47:15.006939Z'}]
+
+        sorted_markets = sorted(markets, cmp=self.publisher.sort_markets_by_createdAt)
+        self.assertEquals(sorted_markets[0]['createdAt'], markets[2]['createdAt'])
+
 
 if __name__=='__main__':
     unittest.main()

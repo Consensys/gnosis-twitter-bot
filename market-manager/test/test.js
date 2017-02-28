@@ -25,6 +25,7 @@ describe('get markets', function () {
         expect(market.description.description).to.be.a('string');
         expect(market.description.sourceURL).to.be.a('string');
         expect(market.description.resolutionDate).to.be.a('string');
+        expect(market.createdAt).to.be.a('string');
       });
 
       done();
