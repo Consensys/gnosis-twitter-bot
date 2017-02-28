@@ -21,7 +21,7 @@ describe('get markets', function () {
         expect(market.prices).to.be.a('array');
         expect(market.description.title).to.be.a('string');
         expect(market.description.tags).to.be.a('array');
-        expect(market.description.tags).to.contain('twitter');
+        expect(market.description.tags.map(function(item){ return item.toLowerCase();})).to.contain('twitter');
         expect(market.description.description).to.be.a('string');
         expect(market.description.sourceURL).to.be.a('string');
         expect(market.description.resolutionDate).to.be.a('string');

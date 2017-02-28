@@ -2,7 +2,7 @@ const gnosis = require("gnosisjs");
 const configObject = require("./config.js");
 const Decimal = require('decimal.js');
 const filters = {
-  tags: "twitter",
+  tags: "twitter, Twitter",
   include_whitelisted_oracles: true,
   oracle_addresses: "0x0"
 };
