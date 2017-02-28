@@ -86,9 +86,10 @@ class PublisherBot(object):
         except Exception:
             raise
 
-        if(memcached.get('number_of_markets')): # Number of markets got previously
+        if memcached.get('number_of_markets'): # Number of markets got previously
             if memcached.get('number_of_markets') < n_markets:
                 n_new_markets = n_markets - memcached.get('number_of_markets')
+
                 # One or more events have been published
                 sorted_markets = sorted(self._markets, cmp=self.sort_markets_by_createdAt)
                 # Get new markets
@@ -96,7 +97,7 @@ class PublisherBot(object):
 
                 for x in range(0, len(new_markets)):
                     self._actual_market = new_markets[x]
-                    self.tweet_new_market()
+                    self.tweet_new_market(False)
                     time.sleep(1)
 
                 memcached.add('number_of_markets', n_markets)
@@ -152,7 +153,7 @@ class PublisherBot(object):
             self._actual_market_hash = self._actual_market['marketHash']
 
 
-    def tweet_new_market(self):
+    def tweet_new_market(self, set_market_hash=True):
         # get Twitter API instance
         api = self._auth.get_api()
         # marketTitle
@@ -177,6 +178,6 @@ class PublisherBot(object):
 
         res = api.update_status(message)
 
-        # Set memcache
-        memcached.add('market_hash', self._actual_market_hash)
-        #self.add_to_memcache('market_hash', self._actual_market_hash)
+        if set_market_hash:
+            # Set memcache
+            memcached.add('market_hash', self._actual_market_hash)
