@@ -93,10 +93,10 @@ class PublisherBot(object):
                 # One or more events have been published
                 sorted_markets = sorted(self._markets, cmp=self.sort_markets_by_createdAt)
                 # Get new markets
-                new_markets = sorted_markets[::n_new_markets]
+                new_markets = sorted_markets[0:n_new_markets]
 
-                for x in range(0, len(new_markets)):
-                    self._actual_market = new_markets[x]
+                for market in new_markets:
+                    self._actual_market = market
                     self.tweet_new_market(False)
                     time.sleep(1)
 
@@ -177,7 +177,7 @@ class PublisherBot(object):
         message += self._actual_market['marketAddress'] + '/'
         message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
 
-        res = api.update_status(message)
+        res = api.update_status(message)        
 
         if set_market_hash:
             # Set memcache
