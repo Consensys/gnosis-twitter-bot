@@ -337,7 +337,8 @@ class TraderBot(tweepy.StreamListener, object):
         self._logger.info('Creating qrcode')
         # Create qrcode image
         try:
-            with open("qrcodes/qr_code.png", "wb") as fh:
+            filename = str(int(round(time.time() * 1000))) + '.png'
+            with open("qrcodes/" + filename, "wb") as fh:
                 fh.write(qr_image_string.decode('base64'))
 
             self._logger.info('saving qrcode to file')
@@ -348,6 +349,7 @@ class TraderBot(tweepy.StreamListener, object):
             try:
                 response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=tweet_text, in_reply_to_status_id=tweet_id)
                 self._logger.info('Tweet sent')
+                os.remove("qrcodes/" + filename)
             except:
                 self._logger.error('An error occurred in retweet when sending response back via API', exc_info=True)
 
