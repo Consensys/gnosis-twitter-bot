@@ -1,6 +1,9 @@
 {
   "name": "gnosis-twitter-bot",
   "version": "1.0.0",
+  "engines":{
+    "node":"6.9.4"
+  },
   "description": "Main package.json istalls submodules",
   "main": "index.js",
   "scripts": {
