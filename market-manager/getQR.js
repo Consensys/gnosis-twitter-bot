@@ -62,6 +62,7 @@ gnosis.contracts.marketFactory.getMarketsProcessed(
         // Set response object
         globalResponse.imageString = pngBuffer.toString('base64');
         globalResponse.numberOfShares = numberOfShares.div('1e18').toNumber();
+        globalResponse.uportUrl = uportTx;
 
         gnosis.contracts.eventFactory.getEventsProcessed(
           [market.eventHash],

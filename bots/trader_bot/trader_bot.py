@@ -255,6 +255,9 @@ class TraderBot(tweepy.StreamListener, object):
                                         price_before_buying = str( 100 - float(qr_data['priceBeforeBuying']) * 100)
                                         price_after_buying = str( 100 - float(qr_data['priceAfterBuying']) * 100)
 
+                                    # UPORT URL is now obtained via getQR.js
+                                    UPORT_URL = str(qr_data['uportUrl'])
+
                                     response_tweet_text += 'By sending %s ETH with %s the prediction will change from Yes %s%% to Yes %s%%.' % (str(number_of_tokens), UPORT_URL, price_before_buying, price_after_buying)
                                 else:
                                     # Ranged event
@@ -270,6 +273,9 @@ class TraderBot(tweepy.StreamListener, object):
                                         response_tweet_text += 'This marked was closed.'
                                         self.retweet(response_tweet_text, tweet_id)
                                         return
+
+                                    # UPORT URL is now obtained via getQR.js
+                                    UPORT_URL = str(qr_data['uportUrl'])
 
                                     price_before_buying = str(qr_data['priceBeforeBuying'])
                                     price_after_buying = str(qr_data['priceAfterBuying'])
@@ -331,23 +337,17 @@ class TraderBot(tweepy.StreamListener, object):
     def retweet_with_media(self, tweet_text, tweet_id, qr_image_string):
         """Sends a tweet in reply to the receiving message, attaching the generated qrcode"""
 
-        # TODO
-        # Tweepy API.update_with_media seems to work only by providing
-        # a file placed on filesystem. Files creation/deletion should be managed.
         self._logger.info('Creating qrcode')
         # Create qrcode image
         try:
             filename = str(int(round(time.time() * 1000))) + '.png'
+            self._logger.info('saving qrcode to file')
             with open("qrcodes/" + filename, "wb") as fh:
                 fh.write(qr_image_string.decode('base64'))
 
-            self._logger.info('saving qrcode to file')
-
-            # TODO create an unique image name
-            # and remove it after sendig back the tweet
             self._logger.info('qrcode saved, retweeting')
             try:
-                response = self._auth.get_api().update_with_media('qrcodes/qr_code.png', status=tweet_text, in_reply_to_status_id=tweet_id)
+                response = self._auth.get_api().update_with_media('qrcodes/' + filename, status=tweet_text, in_reply_to_status_id=tweet_id)
                 self._logger.info('Tweet sent')
                 os.remove("qrcodes/" + filename)
             except:

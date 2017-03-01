@@ -26,7 +26,7 @@ class UportQRSubprovider extends Subprovider {
   }
 
   txParamsToUri (txParams, cb) {
-    let uri = 'me.uport:' + txParams.to
+    let uri = 'https://id.uport.me/' + txParams.to
     let symbol
     if (!txParams.to) {
       return cb(new Error('Contract creation is not supported by uportProvider'))
