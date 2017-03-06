@@ -1,6 +1,7 @@
 from publisher_bot.publisher_bot import PublisherBot
-from utils.memcached import Memcached as memcached
-from utils.constants import GET_QR_FILE, GNOSIS_URL, MEMCACHED_LOCKING_TIME, UPORT_URL, TWITTER_SCREEN_NAME
+# from utils.memcached import Memcached as memcached
+from utils.constants import GET_QR_FILE, GNOSIS_URL, USER_LOCKING_TIME, UPORT_URL, TWITTER_SCREEN_NAME
+from utils.connection import MongoConnection
 from subprocess import Popen, PIPE
 from StringIO import StringIO
 import base64
@@ -175,24 +176,42 @@ class TraderBot(tweepy.StreamListener, object):
                 original_tweet_response = self.get_reply_id_status(tweet_reply_id)
 
                 if not original_tweet_response.in_reply_to_status_id:
-                    # Check if userid in memcached
-                    last_tweet_timestamp = memcached.get(received_from_id)
                     can_proceed = True # False if user is locked
+                    last_tweet_timestamp = None
 
                     # Disable lock for users in whitelist
                     if not self.is_user_whitelisted(received_from):
+                        # Check if userid in memcached
+                        # last_tweet_timestamp = memcached.get(received_from_id)
+
+                        db_response = MongoConnection().get_database().locked_users.find_one({'userid':received_from_id})
+
+                        if db_response is not None:
+                            last_tweet_timestamp = db_response['timestamp']
+
                         if last_tweet_timestamp is not None:
                             # if the user related timestamp is greater than
-                            # or equal to timestamp minus MEMCACHED_LOCKING_TIME
+                            # or equal to timestamp minus USER_LOCKING_TIME
                             # we can proceed
-                            if (timestamp - last_tweet_timestamp) < MEMCACHED_LOCKING_TIME:
+                            if (timestamp - last_tweet_timestamp) < USER_LOCKING_TIME:
                                 can_proceed = False
                             else:
-                                # Save data to memcached
-                                memcached.add(received_from_id, timestamp)
+                                # Update MongoDB locked_users collection
+                                db_response = MongoConnection().get_database().locked_users.update_one({
+                                    'userid':db_response['userid']},
+                                    {'$set':{'timestamp':timestamp}
+
+                                })
+
+                                # memcached.add(received_from_id, timestamp)
                         else:
                             # Save data to memcached
-                            memcached.add(received_from_id, timestamp)
+                            # memcached.add(received_from_id, timestamp)
+                            # Save data to MongoDB Locks collection
+                            db_response = MongoConnection().get_database().locked_users.insert_one({
+                                'userid':received_from_id,
+                                'timestamp':timestamp
+                            })
 
                     if can_proceed:
                         # Check if the tweet-command is well formed

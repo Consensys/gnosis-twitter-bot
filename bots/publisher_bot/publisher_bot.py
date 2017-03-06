@@ -4,9 +4,11 @@ import memcache
 import json
 import tweepy
 import time
-from utils.memcached import Memcached as memcached
+# from utils.memcached import Memcached as memcached
 from utils.constants import GET_MARKETS_FILE, GNOSIS_URL
+from utils.connection import MongoConnection
 from datetime import datetime
+
 
 class PublisherBot(object):
     """Publisher bot class"""
@@ -47,10 +49,8 @@ class PublisherBot(object):
         except (ValueError, KeyError, TypeError):
             raise
 
-
     def get_actual_market(self):
         return self._actual_market
-
 
     def sort_markets_by_createdAt(self, a, b):
         """
@@ -65,7 +65,6 @@ class PublisherBot(object):
             return -1
         else:
             return 0
-
 
     def tweet_newest_markets(self):
         """
@@ -86,9 +85,13 @@ class PublisherBot(object):
         except Exception:
             raise
 
-        if memcached.get('number_of_markets'): # Number of markets got previously
-            if memcached.get('number_of_markets') < n_markets:
-                n_new_markets = n_markets - memcached.get('number_of_markets')
+        db_response = MongoConnection().get_database().markets.find_one()
+
+        if db_response is not None and db_response['number_of_markets']: # Number of markets got previously
+        # if memcached.get('number_of_markets'):
+            # if memcached.get('number_of_markets') < n_markets:
+            if db_response['number_of_markets'] < n_markets:
+                n_new_markets = n_markets - db_response['number_of_markets'] # memcached.get('number_of_markets')
 
                 # One or more events have been published
                 sorted_markets = sorted(self._markets, cmp=self.sort_markets_by_createdAt)
@@ -101,10 +104,13 @@ class PublisherBot(object):
                     time.sleep(1)
 
             # Update memcached number_of_markets
-            memcached.add('number_of_markets', n_markets)
+            # memcached.add('number_of_markets', n_markets)
+            MongoConnection().get_database().markets.update_one({'_id':db_response['_id']}, {'$set':{'number_of_markets':n_markets}})
         else:
             # Memcached variable wasn't setted
-            memcached.add('number_of_markets', len(self._markets))
+            # memcached.add('number_of_markets', len(self._markets))
+            n_markets = len(self._markets)
+            MongoConnection().get_database().markets.update_one({'_id':db_response['_id']}, {'$set':{'number_of_markets':n_markets}})
 
     def load_markets(self):
         """
@@ -123,9 +129,11 @@ class PublisherBot(object):
             raise
 
         # 1st chech if cache contains the market hash
-        if memcached.get('market_hash'):
+        db_response = MongoConnection().get_database().markets.find_one()
 
-            self._actual_market_hash = memcached.get('market_hash')
+        if db_response is not None and db_response['market_hash']:
+
+            self._actual_market_hash = db_response['market_hash']
 
             # Find the next available market hash
             # market_found variable is used to manage 'market not found' cases
@@ -181,4 +189,9 @@ class PublisherBot(object):
 
         if set_market_hash:
             # Set memcache
-            memcached.add('market_hash', self._actual_market_hash)
+            # memcached.add('market_hash', self._actual_market_hash)
+            MongoConnection().get_database().markets.insert_one({
+                'number_of_markets':len(self._markets),
+                'market_hash':self._actual_market['marketHash']
+            })
+

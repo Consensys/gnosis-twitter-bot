@@ -7,12 +7,14 @@ $fucking_locale = <<SCRIPT
 SCRIPT
 
 $dependencies = <<SCRIPT
+    DEBIAN_FRONTEND=noninteractive apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10
+    DEBIAN_FRONTEND=noninteractive echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/3.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.0.list \
     DEBIAN_FRONTEND=noninteractive apt-get update
     # pyenv
     DEBIAN_FRONTEND=noninteractive apt-get install -y curl python-dev \
         libreadline-dev libbz2-dev libssl-dev libsqlite3-dev libxslt1-dev \
         libxml2-dev libxslt1-dev git python-pip build-essential automake libtool libffi-dev libgmp-dev pkg-config \
-        memcached
+        memcached mongodb-org
 SCRIPT
 
 $pyenv = <<SCRIPT
