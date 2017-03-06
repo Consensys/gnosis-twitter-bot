@@ -90,8 +90,8 @@ class PublisherBot(object):
         if db_response is not None and db_response['number_of_markets']: # Number of markets got previously
         # if memcached.get('number_of_markets'):
             # if memcached.get('number_of_markets') < n_markets:
-            if db_response['number_of_markets'] < n_markets:
-                n_new_markets = n_markets - db_response['number_of_markets'] # memcached.get('number_of_markets')
+            if int(db_response['number_of_markets']) < n_markets:
+                n_new_markets = n_markets - int(db_response['number_of_markets']) # memcached.get('number_of_markets')
 
                 # One or more events have been published
                 sorted_markets = sorted(self._markets, cmp=self.sort_markets_by_createdAt)
@@ -110,7 +110,7 @@ class PublisherBot(object):
             # Memcached variable wasn't setted
             # memcached.add('number_of_markets', len(self._markets))
             n_markets = len(self._markets)
-            MongoConnection().get_database().markets.insert_one({'number_of_markets':n_markets, 'market_hash': self._markets[0]})
+            MongoConnection().get_database().markets.insert_one({'number_of_markets':n_markets, 'market_hash': self._markets[0]['marketHash']})
 
     def load_markets(self):
         """
@@ -131,7 +131,7 @@ class PublisherBot(object):
         # 1st chech if cache contains the market hash
         db_response = MongoConnection().get_database().markets.find_one()
 
-        if db_response is not None and db_response['market_hash']:
+        if db_response is not None and db_response.get('market_hash'):
 
             self._actual_market_hash = db_response['market_hash']
 
@@ -190,12 +190,11 @@ class PublisherBot(object):
         if set_market_hash:
             # Set memcache
             # memcached.add('market_hash', self._actual_market_hash)
-            MongoConnection().get_database().markets.update_one({
-                'market_hash':self._actual_market['marketHash']
-                },
+            MongoConnection().get_database().markets.update_one({},
                 {
                     '$set' : {
-                        'number_of_markets':len(self._markets)
+                        'number_of_markets':len(self._markets),
+                        'market_hash':self._actual_market['marketHash']
                     }
                 },
                 upsert=True
