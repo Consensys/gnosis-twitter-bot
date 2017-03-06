@@ -1,6 +1,6 @@
 from publisher_bot.publisher_bot import PublisherBot
 # from utils.memcached import Memcached as memcached
-from utils.constants import GET_QR_FILE, GNOSIS_URL, USER_LOCKING_TIME, UPORT_URL, TWITTER_SCREEN_NAME
+from utils.constants import GET_QR_FILE, GNOSIS_URL, USER_LOCKING_TIME, UPORT_URL, TWITTER_SCREEN_NAME, GNOSIS_TWITTER_NAME
 from utils.connection import MongoConnection
 from subprocess import Popen, PIPE
 from StringIO import StringIO
@@ -80,7 +80,7 @@ class TraderBot(tweepy.StreamListener, object):
 
         # Detect trading type
         # Check if text contains HIGHER or LOWER keyword
-        upper_text = upper_text.replace('@GNOSISMARKETBOT', '').strip()
+        upper_text = upper_text.replace(GNOSIS_TWITTER_NAME.upper(), '').strip()
 
         if 'HIGHER' in upper_text:
             trading_type = TraderBot.HIGHER_TRADE
