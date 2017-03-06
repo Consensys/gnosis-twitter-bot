@@ -110,7 +110,7 @@ class PublisherBot(object):
             # Memcached variable wasn't setted
             # memcached.add('number_of_markets', len(self._markets))
             n_markets = len(self._markets)
-            MongoConnection().get_database().markets.update_one({'_id':db_response['_id']}, {'$set':{'number_of_markets':n_markets}})
+            MongoConnection().get_database().markets.insert_one({'number_of_markets':n_markets, 'market_hash': self._markets[0]})
 
     def load_markets(self):
         """
@@ -190,8 +190,14 @@ class PublisherBot(object):
         if set_market_hash:
             # Set memcache
             # memcached.add('market_hash', self._actual_market_hash)
-            MongoConnection().get_database().markets.insert_one({
-                'number_of_markets':len(self._markets),
+            MongoConnection().get_database().markets.update_one({
                 'market_hash':self._actual_market['marketHash']
-            })
+                },
+                {
+                    '$set' : {
+                        'number_of_markets':len(self._markets)
+                    }
+                },
+                upsert=True
+            )
 
