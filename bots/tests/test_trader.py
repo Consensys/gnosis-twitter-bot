@@ -7,8 +7,8 @@ from subprocess import Popen, PIPE
 from auth_factory import AuthFactory
 from trader_bot.trader_bot import TraderBot
 from publisher_bot.publisher_bot import PublisherBot
-from utils.constants import GET_MARKETS_FILE, GET_QR_FILE, MEMCACHED_LOCKING_TIME
-from utils.memcached import Memcached as memcached
+from utils.constants import GET_MARKETS_FILE, GET_QR_FILE, USER_LOCKING_TIME
+# from utils.memcached import Memcached as memcached
 
 
 class TestTrader(unittest.TestCase):
@@ -74,7 +74,7 @@ class TestTrader(unittest.TestCase):
         [self.assertEquals(self.trader.get_trading_and_token_number_from_string(cmd[0].upper())[1], cmd[1]) for cmd in commands]
 
 
-    def test_locking_system(self):
+    """def test_locking_system(self):
         timestamp = time.time() # in seconds
         test_user_id = "123456"
         memcached.delete(test_user_id)
@@ -87,7 +87,7 @@ class TestTrader(unittest.TestCase):
         self.assertEquals(last_tweet_timestamp, timestamp)
 
         second_timestamp = time.time()
-        self.assertTrue((timestamp - last_tweet_timestamp) <= MEMCACHED_LOCKING_TIME)
+        self.assertTrue((timestamp - last_tweet_timestamp) <= MEMCACHED_LOCKING_TIME)"""
 
 
     def test_node_errors(self):
