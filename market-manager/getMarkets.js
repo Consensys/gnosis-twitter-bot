@@ -45,14 +45,15 @@ gnosis.config.initialize(
                 Promise
                 .all(marketsPromises)
                 .then(
-                  (markets) => {                    
+                  (markets) => {
                     let result = [];
 
                     function callbackResponse (obj, lastitem) {
                       result.push(obj);
                       if (lastitem == true) {
                         let resultFlattened = [].concat.apply([], result);
-                        console.log(JSON.stringify(resultFlattened));
+                        console.log(JSON.stringify(resultFlattened));                        
+                        process.exit();
                       }
                     }
 
