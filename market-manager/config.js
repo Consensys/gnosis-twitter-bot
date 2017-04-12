@@ -24,8 +24,8 @@ module.exports = {
       '0x6fd1cff94dbe0ba14f01f39bfc2f6ee396843bad',
       '0xece9fa304cc965b00afc186f5d0281a00d3dbbfd'],
   },
-  gnosisServiceURL: 'https://beta.gnosis.pm/api/',
-  ethereumNodeURL: 'https://ropsten.infura.io/gnosis-twitter-bot',
+  gnosisServiceURL: 'https://admin.gnosis.pm/api/',
+  ethereumNodeURL: 'https://mainnet.infura.io/gnosis-twitter-bot',
   transactionsLoop: false,
   callBeforeTransaction: false
 };
