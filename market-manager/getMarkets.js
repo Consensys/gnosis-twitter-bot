@@ -10,8 +10,7 @@ const web3 = new Web3(engine);
 
 const filters = {
   include_whitelisted_oracles: true,
-  oracle_addresses: "0x0",
-  include_whitelisted_oracles: true
+  oracle_addresses: "0x0"
 };
 
 // Set web3
@@ -30,26 +29,23 @@ gnosis.config.initialize(
     gnosis.api.getContracts({}, config)
     .then(
       (addresses) => {
-        let offChainOracles = addresses.data.offChainOracles.map(oracle => oracle.address);
         gnosis.state.updateEventDescriptions(config, filters)
         .then(
           (descriptions) => {
-            return gnosis.state.updateEvents(config, ['0x7b2e78d4dfaaba045a167a70da285e30e8fca196'])
+            return gnosis.state.updateEvents(config)
             .then(
-              (eventHashes) => {
-                console.log(eventHashes);
+              (events) => {
                 let marketAddresses = addresses.data.markets.map(market => market.address);
                 let marketsPromises = marketAddresses.map(
                   (marketAddress) => {
-                    return gnosis.state.updateMarkets(config, offChainOracles, marketAddress)
+                    return gnosis.state.updateMarkets(config, marketAddress, "0x7b2e78d4dfaaba045a167a70da285e30e8fca196")
                   }
                 );
 
                 Promise
                 .all(marketsPromises)
                 .then(
-                  (markets) => {
-
+                  (markets) => {                    
                     let result = [];
 
                     function callbackResponse (obj, lastitem) {
@@ -142,16 +138,18 @@ gnosis.config.initialize(
                 );
 
               },
-              //process.exit
-              console.log
+              process.exit
+              //console.log
             );
           },
-          //console.log
           process.exit
+          //console.log
         );
-      }
+      },
+      //console.log
+      process.exit
     );
   },
-  //process.exit
-  console.log
+  process.exit
+  //console.log
 );
