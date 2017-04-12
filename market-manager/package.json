@@ -20,7 +20,7 @@
   "dependencies": {
     "chai": "^3.5.0",
     "decimal.js": "^7.1.1",
-    "gnosisjs": "0.1.0",
+    "gnosisjs": "0.1.1-c",
     "mocha": "^3.2.0",
     "qr-image": "^3.2.0",
     "web3": "^0.18.2",

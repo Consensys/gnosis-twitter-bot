@@ -9,9 +9,9 @@ const engine = new ProviderEngine();
 const web3 = new Web3(engine);
 
 const filters = {
-  tags: "twitter, Twitter",
   include_whitelisted_oracles: true,
-  oracle_addresses: "0x0"
+  oracle_addresses: "0x0",
+  include_whitelisted_oracles: true
 };
 
 // Set web3
@@ -34,9 +34,10 @@ gnosis.config.initialize(
         gnosis.state.updateEventDescriptions(config, filters)
         .then(
           (descriptions) => {
-            return gnosis.state.updateEvents(config, offChainOracles)
+            return gnosis.state.updateEvents(config, ['0x7b2e78d4dfaaba045a167a70da285e30e8fca196'])
             .then(
               (eventHashes) => {
+                console.log(eventHashes);
                 let marketAddresses = addresses.data.markets.map(market => market.address);
                 let marketsPromises = marketAddresses.map(
                   (marketAddress) => {
@@ -104,7 +105,7 @@ gnosis.config.initialize(
                                 price.toPrecision(Math.ceil(Math.log(boundOffset.toNumber())/Math.log(10))+2)
                               );
                             }
-                            
+
                             web3.eth.getBlock(parseInt(market.createdAtBlock), function (error, result) {
                                 if (!error) {
                                     let createdAt = new Date(result.timestamp*1000).toISOString();
@@ -141,13 +142,16 @@ gnosis.config.initialize(
                 );
 
               },
-              process.exit
+              //process.exit
+              console.log
             );
           },
+          //console.log
           process.exit
         );
       }
     );
   },
-  process.exit
+  //process.exit
+  console.log
 );
