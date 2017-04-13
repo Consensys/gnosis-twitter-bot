@@ -4,7 +4,7 @@ import environ
 MEMCACHED_URL = os.getenv('MEMCACHED_URL', '127.0.0.1:11211')
 GNOSIS_TWITTER_NAME = os.getenv('GNOSIS_TWITTER_NAME')
 TWITTER_SCREEN_NAME= os.getenv('TWITTER_SCREEN_NAME')
-GNOSIS_URL = 'https://uport.gnosis.pm/#/market/'
+GNOSIS_URL = 'https://admin.gnosis.pm/#/market/'
 UPORT_URL = 'https://www.uport.me/'
 
 ROOT_DIR = environ.Path(__file__) - 3
