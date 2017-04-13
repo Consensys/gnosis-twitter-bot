@@ -87,7 +87,7 @@ class PublisherBot(object):
 
         db_response = MongoConnection().get_database().markets.find_one()
 
-        if db_response is not None and db_response['number_of_markets']: # Number of markets got previously
+        if db_response is not None and db_response.get('number_of_markets'): # Number of markets got previously
         # if memcached.get('number_of_markets'):
             # if memcached.get('number_of_markets') < n_markets:
             if int(db_response['number_of_markets']) < n_markets:
@@ -170,9 +170,22 @@ class PublisherBot(object):
 
         # odds
         if 'outcomes' in self._actual_market['description']:
-            # discrete
-            message += self._actual_market['description']['outcomes'][0] + ' '
-            message += '(' + str(float(self._actual_market['prices'][0])*100) + ' %)'
+            if len(self._actual_market['description'].get('outcomes')) > 2 or self._actual_market['description'].get('outcomes')[0].lower() is not 'yes':
+                # search for the highest price
+                current_price = 0
+                found_idx = None
+                for i, item in enumerate(self._actual_market['description'].get('outcomes')):
+                    price = float(self._actual_market['prices'][i])
+                    if price > current_price:
+                        current_price = price
+                        found_idx = i
+
+                message += self._actual_market['description']['outcomes'][found_idx] + ' '
+                message += '(' + str(float(self._actual_market['prices'][found_idx])*100) + ' %)'
+            else:
+                # discrete
+                message += self._actual_market['description']['outcomes'][0] + ' '
+                message += '(' + str(float(self._actual_market['prices'][0])*100) + ' %)'
 
         else:
             # ranged
@@ -184,8 +197,8 @@ class PublisherBot(object):
         message += self._actual_market['descriptionHash'] + '/'
         message += self._actual_market['marketAddress'] + '/'
         message += self._actual_market['marketHash'] + '?t=' + str(int(time.time()*1000))
-
-        res = api.update_status(message)        
+        
+        res = api.update_status(message)
 
         if set_market_hash:
             # Set memcache
@@ -199,4 +212,3 @@ class PublisherBot(object):
                 },
                 upsert=True
             )
-

@@ -4,6 +4,13 @@ from auth_factory import AuthFactory
 from publisher_bot.publisher_bot import PublisherBot
 from utils.memcached import Memcached as memcached
 
+class ApiMock:
+    def update_status(self, message):
+        self.message = message
+
+    def get_message(self):
+        return self.message
+
 
 class TestPublisher(unittest.TestCase):
     """python -m unittest tests.test_publisher"""
@@ -14,6 +21,7 @@ class TestPublisher(unittest.TestCase):
 
     def setUp(self):
         self.auth = AuthFactory()
+        self.auth.set_api(ApiMock())
         self.publisher = PublisherBot(self.auth)
 
 
@@ -33,6 +41,12 @@ class TestPublisher(unittest.TestCase):
 
         sorted_markets = sorted(markets, cmp=self.publisher.sort_markets_by_createdAt)
         self.assertEquals(sorted_markets[0]['createdAt'], markets[2]['createdAt'])
+
+    def test_outcomes(self):
+        self.publisher.load_markets()
+        self.publisher.tweet_new_market(set_market_hash=False)
+        self.assertIsNotNone(self.auth.get_api().get_message())
+
 
 
 if __name__=='__main__':

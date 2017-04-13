@@ -52,7 +52,7 @@ gnosis.config.initialize(
                       result.push(obj);
                       if (lastitem == true) {
                         let resultFlattened = [].concat.apply([], result);
-                        console.log(JSON.stringify(resultFlattened));                        
+                        console.log(JSON.stringify(resultFlattened));
                         process.exit();
                       }
                     }
@@ -73,7 +73,7 @@ gnosis.config.initialize(
                               for (let i=0; i<description.descriptionJSON.outcomes.length; i++) {
                                 let price = gnosis.marketMaker.calcPrice(
                                   market.shares,
-                                  new Decimal(0),
+                                  new Decimal(i),
                                   market.initialFunding
                                 );
                                 price = price.toFixed(2);
