@@ -50,8 +50,13 @@ gnosis.config.initialize(
 
                     function callbackResponse (obj, lastitem) {
                       result.push(obj);
+
                       if (lastitem == true) {
                         let resultFlattened = [].concat.apply([], result);
+                        // ASC sort by createdAt attribute
+                        resultFlattened.sort(function(a,b){
+                          return new Date(a.createdAt) - new Date(b.createdAt);
+                        });
                         console.log(JSON.stringify(resultFlattened));
                         process.exit();
                       }
