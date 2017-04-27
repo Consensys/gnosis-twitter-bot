@@ -55,7 +55,11 @@ gnosis.config.initialize(
                       result.push(obj);
                       if (lastitem == true) {
                         let resultFlattened = [].concat.apply([], result);
-                        console.log(JSON.stringify(resultFlattened));
+                        // ASC sort by createdAt attribute
+                        resultFlattened.sort(function (a,b) {
+                          return new Date(a.createdAt) - new Date(b.createdAt);
+                        });
+                        console.log(JSON.stringify(resultFlattened));                        
                       }
                     }
 
@@ -104,7 +108,7 @@ gnosis.config.initialize(
                                 price.toPrecision(Math.ceil(Math.log(boundOffset.toNumber())/Math.log(10))+2)
                               );
                             }
-                            
+
                             web3.eth.getBlock(parseInt(market.createdAtBlock), function (error, result) {
                                 if (!error) {
                                     let createdAt = new Date(result.timestamp*1000).toISOString();
